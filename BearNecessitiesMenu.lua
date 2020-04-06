@@ -18,8 +18,9 @@ function BN.BuildMenu()
     {
       type = "checkbox",
       name = "Account-Wide Settings",
-      getFunc = function() return BN.SavedVariables.isAccountWide end,
-      setFunc = function(value) BN.SavedVariables.isAccountWide = value end,
+      getFunc = function() return BearNecessitiesSV.Default[GetDisplayName()]["$AccountWide"].isAccountWide end,
+      setFunc = function(value) BearNecessitiesSV.Default[GetDisplayName()]["$AccountWide"].isAccountWide = value end,
+      requiresReload = true,
     },
     {
       type = "checkbox",
