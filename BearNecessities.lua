@@ -4,14 +4,25 @@ BearNecessities = {
   svName = "BearNecessitiesSV",
   svVersion = 1,
 
-  Default = {},
+  Default = {
+    isAccountWide = true,
+    isFoodEnabled = true,
+  },
 }
 
 local BN = BearNecessities
 
-local function Initialise()
-  BN.SavedVariables = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
+local function ActivityFinderAchievements()
+end
 
+local function Initialise()
+  if isAccountWide then
+    BN.SavedVariables = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
+  else
+    BN.SavedVariables = ZO_SavedVars:NewCharacterIdSettings(BN.svName, BN.svVersion, nil, BN.Default)
+  end
+
+  ActivityFinderAchievements()
   BN.BuildMenu()
 end
 
@@ -22,4 +33,4 @@ local function OnAddonLoaded(_, addonName)
   end
 end
 
-EVENT_MANAGER:RegisterForEvent(BN.name, EVENT_ADD_ON_LOADED, OnAddonLoaded))
+EVENT_MANAGER:RegisterForEvent(BN.name, EVENT_ADD_ON_LOADED, OnAddonLoaded)
