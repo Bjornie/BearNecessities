@@ -13,11 +13,11 @@ function BN.BuildMenu()
   local OptionsTable = {
     {
       type = "header",
-      name = "|cFFFACDBear Necessities|r",
+      name = "|cFFFACDGeneral|r",
     },
     {
       type = "checkbox",
-      name = "Account-wide Settings",
+      name = "Account-Wide Settings",
       getFunc = function() return BN.SavedVariables.isAccountWide end,
       setFunc = function(value) BN.SavedVariables.isAccountWide = value end,
     },

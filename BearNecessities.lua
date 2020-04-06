@@ -16,9 +16,9 @@ local function ActivityFinderAchievements()
 end
 
 local function Initialise()
-  if isAccountWide then
-    BN.SavedVariables = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
-  else
+  BN.SavedVariables = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
+
+  if not BN.SavedVariables.isAccountWide then
     BN.SavedVariables = ZO_SavedVars:NewCharacterIdSettings(BN.svName, BN.svVersion, nil, BN.Default)
   end
 
