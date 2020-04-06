@@ -8,7 +8,7 @@ function BN.BuildMenu()
     author = "|c00BFFFBjørnTheBurr|r",
     version = BN.version,
     registerForRefresh = true,
-  },
+  }
 
   local OptionsTable = {
     {
@@ -17,5 +17,6 @@ function BN.BuildMenu()
     },
     {
       -- Settings go here
-    }
+    },
   }
+end
