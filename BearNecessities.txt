@@ -1,7 +1,7 @@
 ## Title: Bear Necessities
 ## Version: 1.0.0
-## APIVersion: 100030
-## Author: BjørnTheBurr
+## APIVersion: 100032
+## Author: |c00BFFFBjørnTheBurr|r
 ## SavedVariables: BearNecessitiesSV
 
 BearNecessities.lua
