@@ -57,6 +57,9 @@
         "CURT_WRIT_VOUCHERS",
         "GetCurrencyAmount",
         "CURRENCY_LOCATION_CHARACTER",
-        "CURRENCY_LOCATION_BANK"
+        "CURRENCY_LOCATION_BANK",
+        "WINDOW_MANAGER",
+        "LEFT",
+        "EVENT_OPEN_BANK"
     ]
 }
