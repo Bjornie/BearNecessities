@@ -233,6 +233,34 @@ local function DungeonFinder()
     end
 end
 
+-- Moves all character currencies to bank
+local function TransferCurrenciesToBank()
+    local ap = GetCurrencyAmount(CURT_ALLIANCE_POINTS, CURRENCY_LOCATION_CHARACTER)
+    local gold = GetCurrencyAmount(CURT_MONEY, CURRENCY_LOCATION_CHARACTER)
+    local tv = GetCurrencyAmount(CURT_TELVAR_STONES, CURRENCY_LOCATION_CHARACTER)
+    local wv = GetCurrencyAmount(CURT_WRIT_VOUCHERS, CURRENCY_LOCATION_CHARACTER)
+
+    if ap > 0 then
+        TransferCurrency(CURT_ALLIANCE_POINTS, ap, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
+        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. ap .. "|r |c00FF00Alliance Points|r")
+    end
+
+    if gold > 0 then
+        TransferCurrency(CURT_MONEY, gold, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
+        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. gold .. "|r |cFFFF00Gold|r")
+    end
+
+    if tv > 0 then
+        TransferCurrency(CURT_TELVAR_STONES, tv, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
+        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. tv .. "|r |c5EB9D7Tel Var Stones|r")
+    end
+
+    if wv > 0 then
+        TransferCurrency(CURT_WRIT_VOUCHERS, wv, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
+        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. wv .. "|r |cE6C563Writ Vouchers|r")
+    end
+end
+
 local function Initialise()
     BN.SavedVariables = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
 
@@ -283,6 +311,7 @@ local function Initialise()
     if BN.SavedVariables.isFoodEnabled then EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", BN.SavedVariables.foodReminderInterval * 1000, BN.FoodReminder) end
 
     EVENT_MANAGER:RegisterForEvent(BN.name .. "IsPlayerInRaidOrDungeon", EVENT_PLAYER_ACTIVATED, IsPlayerInRaidOrDungeon)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "TransferGold", EVENT_OPEN_BANK, TransferCurrenciesToBank)
 end
 
 local function BarswapRefresh(_, didBarswap)

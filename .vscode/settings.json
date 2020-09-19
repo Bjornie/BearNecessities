@@ -49,6 +49,14 @@
         "TOP",
         "IsAchievementComplete",
         "CT_LABEL",
-        "ZO_AlertTextNotification"
+        "ZO_AlertTextNotification",
+        "TransferCurrency",
+        "CURT_ALLIANCE_POINTS",
+        "CURT_MONEY",
+        "CURT_TELVAR_STONES",
+        "CURT_WRIT_VOUCHERS",
+        "GetCurrencyAmount",
+        "CURRENCY_LOCATION_CHARACTER",
+        "CURRENCY_LOCATION_BANK"
     ]
 }
