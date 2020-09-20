@@ -261,6 +261,36 @@ local function TransferCurrenciesToBank()
     end
 end
 
+local function IsEnchantmentEffectivenessReduced(bagId, slotIndex)
+    local currentCharges, maxCharges = GetChargeInfoForItem(bagId, slotIndex)
+
+    return maxCharges > 0 and currentCharges == 0
+end
+
+local function AutoRechargeAndRepair(_, bagId, slotIndex, _, _, _, _)
+    if bagId ~= BAG_WORN then return end
+
+    if IsEnchantmentEffectivenessReduced(bagId, slotIndex) and not HasItemInSlot(bagId, EQUIP_SLOT_POISON) then
+        local backpackSlotIndex = ZO_GetNextBagSlotIndex(BAG_BACKPACK)
+
+        while backpackSlotIndex do
+            if IsItemSoulGem(SOUL_GEM_TYPE_FILLED, BAG_BACKPACK, backpackSlotIndex) then
+                ChargeItemWithSoulGem(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
+            end
+        end
+    end
+
+    if DoesItemHaveDurability(bagId, slotIndex) and IsArmorEffectivenessReduced(bagId, slotIndex) then
+        local backpackSlotIndex = ZO_GetNextBagSlotIndex(BAG_BACKPACK)
+
+        while backpackSlotIndex do
+            if IsItemRepairKit(BAG_BACKPACK, backpackSlotIndex) and not IsItemNonCrownRepairKit(BAG_BACKPACK, backpackSlotIndex) then
+                RepairItemWithRepairKit(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
+            end
+        end
+    end
+end
+
 local function Initialise()
     BN.SavedVariables = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
 
@@ -312,6 +342,7 @@ local function Initialise()
 
     EVENT_MANAGER:RegisterForEvent(BN.name .. "IsPlayerInRaidOrDungeon", EVENT_PLAYER_ACTIVATED, IsPlayerInRaidOrDungeon)
     EVENT_MANAGER:RegisterForEvent(BN.name .. "TransferGold", EVENT_OPEN_BANK, TransferCurrenciesToBank)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "AutoRechargeAndRepair", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, AutoRechargeAndRepair)
 end
 
 local function BarswapRefresh(_, didBarswap)

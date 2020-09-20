@@ -60,6 +60,25 @@
         "CURRENCY_LOCATION_BANK",
         "WINDOW_MANAGER",
         "LEFT",
-        "EVENT_OPEN_BANK"
+        "EVENT_OPEN_BANK",
+        "INVENTORY_UPDATE_REASON_DURABILITY_CHANGE",
+        "INVENTORY_UPDATE_REASON_ITEM_CHARGE",
+        "BAG_WORN",
+        "EVENT_INVENTORY_SINGLE_SLOT_UPDATE",
+        "BAG_BACKPACK",
+        "IsItemSoulGem",
+        "ChargeItemWithSoulGem",
+        "ZO_GetNextBagSlotIndex",
+        "GetChargeInfoForItem",
+        "IsItemChargeable",
+        "SOUL_GEM_TYPE_FILLED",
+        "EVENT_INVENTORY_FULL_UPDATE",
+        "HasItemInSlot",
+        "EQUIP_SLOT_POISON",
+        "DoesItemHaveDurability",
+        "IsArmorEffectivenessReduced",
+        "IsItemRepairKit",
+        "IsItemNonCrownRepairKit",
+        "RepairItemWithRepairKit"
     ]
 }
