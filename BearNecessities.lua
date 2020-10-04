@@ -13,6 +13,21 @@ BearNecessities = {
     },
 }
 
+local EquipmentSlots =
+{
+    EQUIP_SLOT_HEAD,
+    EQUIP_SLOT_CHEST,
+    EQUIP_SLOT_SHOULDERS,
+    EQUIP_SLOT_MAIN_HAND,
+    EQUIP_SLOT_OFF_HAND,
+    EQUIP_SLOT_WAIST,
+    EQUIP_SLOT_LEGS,
+    EQUIP_SLOT_FEET,
+    EQUIP_SLOT_HAND,
+    EQUIP_SLOT_BACKUP_MAIN,
+    EQUIP_SLOT_BACKUP_OFF,
+}
+
 local FoodList = {
     [61255] = "bistat", -- Increase Max Health & Stamina
     [84720] = "unique", -- Ghastly Eye Bowl
@@ -119,34 +134,6 @@ local noFood = true
 local buffFoodRemaining
 local foodFormattedTime
 
-function BN.FoodReminder()
-    if not isInRaidOrDungeon then return end
-
-    noFood = true
-
-    for i = 1, GetNumBuffs("player") do
-        local _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo("player", i)
-
-        if FoodList[abilityId] then
-            noFood = false
-            buffFoodRemaining = finish - GetGameTimeSeconds()
-            foodFormattedTime = ZO_FormatTime(buffFoodRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
-
-            if buffFoodRemaining <= BN.SavedVariables.foodReminderThreshold * 60 then d("|c00BFFFYour food buff is expiring in: |r" .. foodFormattedTime) end
-        end
-    end
-
-    if noFood then d("|cFF0000You have no food buff!|r") end
-end
-
-local function IsPlayerInRaidOrDungeon()
-    if IsPlayerInRaid() or IsUnitInDungeon("player") then isInRaidOrDungeon = true
-    else isInRaidOrDungeon = false end
-
-    -- Shouldn't be here, but I'm lazy
-    ZO_AlertTextNotification:SetHidden(true)
-end
-
 -- Checks pledges in Dungeon Finder
 local function CheckPledges()
     -- Ineffecient locales
@@ -233,6 +220,34 @@ local function DungeonFinder()
     end
 end
 
+function BN.FoodReminder()
+    if not isInRaidOrDungeon then return end
+
+    noFood = true
+
+    for i = 1, GetNumBuffs("player") do
+        local _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo("player", i)
+
+        if FoodList[abilityId] then
+            noFood = false
+            buffFoodRemaining = finish - GetGameTimeSeconds()
+            foodFormattedTime = ZO_FormatTime(buffFoodRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
+
+            if buffFoodRemaining <= BN.SavedVariables.foodReminderThreshold * 60 then d("|c00BFFFYour food buff is expiring in: |r" .. foodFormattedTime) end
+        end
+    end
+
+    if noFood then d("|cFF0000You have no food buff!|r") end
+end
+
+local function IsPlayerInRaidOrDungeon()
+    if IsPlayerInRaid() or IsUnitInDungeon("player") then isInRaidOrDungeon = true
+    else isInRaidOrDungeon = false end
+
+    -- Shouldn't be here, but I'm lazy
+    ZO_AlertTextNotification:SetHidden(true)
+end
+
 -- Moves all character currencies to bank
 local function TransferCurrenciesToBank()
     local ap = GetCurrencyAmount(CURT_ALLIANCE_POINTS, CURRENCY_LOCATION_CHARACTER)
@@ -242,22 +257,22 @@ local function TransferCurrenciesToBank()
 
     if ap > 0 then
         TransferCurrency(CURT_ALLIANCE_POINTS, ap, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. ap .. "|r |c00FF00Alliance Points|r")
+        d("|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF" .. ap .. "|r |c00FF00Alliance Points|r")
     end
 
     if gold > 0 then
         TransferCurrency(CURT_MONEY, gold, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. gold .. "|r |cFFFF00Gold|r")
+        d("|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF" .. gold .. "|r |cFFFF00Gold|r")
     end
 
     if tv > 0 then
         TransferCurrency(CURT_TELVAR_STONES, tv, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. tv .. "|r |c5EB9D7Tel Var Stones|r")
+        d("|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF" .. tv .. "|r |c5EB9D7Tel Var Stones|r")
     end
 
     if wv > 0 then
         TransferCurrency(CURT_WRIT_VOUCHERS, wv, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d("|c00BFFFBearNecessities|r |cC5C29Ehas moved " .. wv .. "|r |cE6C563Writ Vouchers|r")
+        d("|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF" .. wv .. "|r |cE6C563Writ Vouchers|r")
     end
 end
 
@@ -267,27 +282,38 @@ local function IsEnchantmentEffectivenessReduced(bagId, slotIndex)
     return maxCharges > 0 and currentCharges == 0
 end
 
-local function AutoRechargeAndRepair(_, bagId, slotIndex, _, _, _, _)
+local function CheckEquippedGearPiece(_, bagId, slotIndex)
     if bagId ~= BAG_WORN then return end
-
-    if IsEnchantmentEffectivenessReduced(bagId, slotIndex) and not HasItemInSlot(bagId, EQUIP_SLOT_POISON) then
-        local backpackSlotIndex = ZO_GetNextBagSlotIndex(BAG_BACKPACK)
-
-        while backpackSlotIndex do
-            if IsItemSoulGem(SOUL_GEM_TYPE_FILLED, BAG_BACKPACK, backpackSlotIndex) then
-                ChargeItemWithSoulGem(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
-            end
-        end
-    end
 
     if DoesItemHaveDurability(bagId, slotIndex) and IsArmorEffectivenessReduced(bagId, slotIndex) then
         local backpackSlotIndex = ZO_GetNextBagSlotIndex(BAG_BACKPACK)
 
         while backpackSlotIndex do
-            if IsItemRepairKit(BAG_BACKPACK, backpackSlotIndex) and not IsItemNonCrownRepairKit(BAG_BACKPACK, backpackSlotIndex) then
+            if IsItemRepairKit(BAG_BACKPACK, backpackSlotIndex) then
                 RepairItemWithRepairKit(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
+                d("|c00BFFFBear Necessities|r |cC5C29Eused a " .. GetItemLink(BAG_BACKPACK, backpackSlotIndex) .. " to repair|r " .. GetItemLink(BAG_WORN, slotIndex))
+                break
             end
+
+            backpackSlotIndex = ZO_GetNextBagSlotIndex(BAG_BACKPACK, backpackSlotIndex)
         end
+    elseif IsItemChargeable(bagId, slotIndex) and IsEnchantmentEffectivenessReduced(bagId, slotIndex) then
+        local backpackSlotIndex = ZO_GetNextBagSlotIndex(BAG_BACKPACK)
+
+        while backpackSlotIndex do
+            if IsItemSoulGem(SOUL_GEM_TYPE_FILLED, BAG_BACKPACK, backpackSlotIndex) then
+                ChargeItemWithSoulGem(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
+                break
+            end
+
+            backpackSlotIndex = ZO_GetNextBagSlotIndex(BAG_BACKPACK, backpackSlotIndex)
+        end
+    end
+end
+
+local function CheckAllWornGear()
+    for _, slotIndex in ipairs(EquipmentSlots) do
+        CheckEquippedGearPiece(_, BAG_WORN, slotIndex)
     end
 end
 
@@ -342,22 +368,9 @@ local function Initialise()
 
     EVENT_MANAGER:RegisterForEvent(BN.name .. "IsPlayerInRaidOrDungeon", EVENT_PLAYER_ACTIVATED, IsPlayerInRaidOrDungeon)
     EVENT_MANAGER:RegisterForEvent(BN.name .. "TransferGold", EVENT_OPEN_BANK, TransferCurrenciesToBank)
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "AutoRechargeAndRepair", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, AutoRechargeAndRepair)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckEquippedGearPiece", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckAllWornGear", EVENT_PLAYER_ACTIVATED, CheckAllWornGear)
 end
-
-local function BarswapRefresh(_, didBarswap)
-    if didBarswap then
-        for i = 1, GetNumBuffs("player") do
-            local buffName, timeStarted, timeEnding, buffSlot, stackCount, iconFilename, buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff, castByPlayer = GetUnitBuffInfo("player", i)
-
-            d("-----")
-            d(buffName)
-            d(abilityId)
-        end
-    end
-end
-
---EVENT_MANAGER:RegisterForEvent(BN.name, EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, BarswapRefresh)
 
 SLASH_COMMANDS["/house"] = function()
     RequestJumpToHouse(GetHousingPrimaryHouse())
