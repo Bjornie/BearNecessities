@@ -134,7 +134,7 @@ local noFood = true
 local buffFoodRemaining
 local foodFormattedTime
 
--- Checks pledges in Dungeon Finder
+-- Un-/checks pledges in Dungeon Finder
 local function CheckPledges()
     -- Ineffecient locales
     local isVeteran = GetPlayerChampionPointsEarned() >= 160 and 3 or 2
@@ -220,6 +220,7 @@ local function DungeonFinder()
     end
 end
 
+-- Notifies player in chat when food is about to run out or if no food buff is active
 function BN.FoodReminder()
     if not isInRaidOrDungeon then return end
 
@@ -240,6 +241,7 @@ function BN.FoodReminder()
     if noFood then d("|cFF0000You have no food buff!|r") end
 end
 
+-- 
 local function IsPlayerInRaidOrDungeon()
     if IsPlayerInRaid() or IsUnitInDungeon("player") then isInRaidOrDungeon = true
     else isInRaidOrDungeon = false end
@@ -282,7 +284,9 @@ local function IsEnchantmentEffectivenessReduced(bagId, slotIndex)
     return maxCharges > 0 and currentCharges == 0
 end
 
+-- Repairs broken gear and recharges drained weapons
 local function CheckEquippedGearPiece(_, bagId, slotIndex)
+    if IsUnitDead("player") then return end
     if bagId ~= BAG_WORN then return end
 
     if DoesItemHaveDurability(bagId, slotIndex) and IsArmorEffectivenessReduced(bagId, slotIndex) then
@@ -311,6 +315,7 @@ local function CheckEquippedGearPiece(_, bagId, slotIndex)
     end
 end
 
+-- Checks all worn gear if they're broken or drained
 local function CheckAllWornGear()
     for _, slotIndex in ipairs(EquipmentSlots) do
         CheckEquippedGearPiece(_, BAG_WORN, slotIndex)
@@ -370,6 +375,7 @@ local function Initialise()
     EVENT_MANAGER:RegisterForEvent(BN.name .. "TransferGold", EVENT_OPEN_BANK, TransferCurrenciesToBank)
     EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckEquippedGearPiece", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
     EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckAllWornGear", EVENT_PLAYER_ACTIVATED, CheckAllWornGear)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckAllWornGear", EVENT_PLAYER_ALIVE, CheckAllWornGear)
 end
 
 SLASH_COMMANDS["/house"] = function()

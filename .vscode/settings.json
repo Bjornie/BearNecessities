@@ -101,6 +101,8 @@
         "UseItem",
         "EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED",
         "GetItemName",
-        "GetItemLink"
+        "GetItemLink",
+        "IsUnitDead",
+        "EVENT_PLAYER_ALIVE"
     ]
 }
