@@ -155,13 +155,13 @@ end
 
 -- Creates 'Un-/Check Pledges' button
 local function BuildPledgeButton()
-    BN_CheckPledges:SetWidth(200)
-    BN_CheckPledges:SetHeight(28)
-    BN_CheckPledges:SetText("Un-/Check Pledges")
-    BN_CheckPledges:ClearAnchors()
-    BN_CheckPledges:SetAnchor(BOTTOM, ZO_SearchingForGroup, BOTTOM, 0, -76)
-    BN_CheckPledges:SetClickSound("Click")
-    BN_CheckPledges:SetHandler("OnClicked", CheckPledges)
+    BearNecessities_CheckPledges:SetWidth(200)
+    BearNecessities_CheckPledges:SetHeight(28)
+    BearNecessities_CheckPledges:SetText("Un-/Check Pledges")
+    BearNecessities_CheckPledges:ClearAnchors()
+    BearNecessities_CheckPledges:SetAnchor(BOTTOM, ZO_SearchingForGroup, BOTTOM, 0, -76)
+    BearNecessities_CheckPledges:SetClickSound("Click")
+    BearNecessities_CheckPledges:SetHandler("OnClicked", CheckPledges)
 end
 
 -- Positions completed achievements icons next to dungeon names in Dungeon Finder
@@ -215,7 +215,7 @@ local function DungeonFinder()
             achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].noDeath) and "|t20:20:/esoui/art/deathrecap/deathrecap_killingblow_icon.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t")
             achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].triple) and "|t20:20:/esoui/art/market/keyboard/esoplus_chalice_white2_64.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t")
 
-            PositionAchievementIcons("BN_AchievementIcons" .. c .. i, control, achievementIcons)
+            PositionAchievementIcons("BearNecessities_AchievementIcons" .. c .. i, control, achievementIcons)
         end
     end
 end
@@ -352,7 +352,7 @@ local function Initialise()
         COMPASS_FRAME:SetBossBarActive(totalHealth > 0)
     end
 
-    WINDOW_MANAGER:CreateControlFromVirtual("BN_CheckPledges", ZO_DungeonFinder_Keyboard, "ZO_DefaultButton")
+    WINDOW_MANAGER:CreateControlFromVirtual("BearNecessities_CheckPledges", ZO_DungeonFinder_Keyboard, "ZO_DefaultButton")
 
     BuildPledgeButton()
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, "OnEffectivelyShown", function()
@@ -371,11 +371,11 @@ local function Initialise()
 
     if BN.SavedVariables.isFoodEnabled then EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", BN.SavedVariables.foodReminderInterval * 1000, BN.FoodReminder) end
 
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "IsPlayerInRaidOrDungeon", EVENT_PLAYER_ACTIVATED, IsPlayerInRaidOrDungeon)
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "TransferGold", EVENT_OPEN_BANK, TransferCurrenciesToBank)
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckEquippedGearPiece", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckAllWornGear", EVENT_PLAYER_ACTIVATED, CheckAllWornGear)
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "CheckAllWornGear", EVENT_PLAYER_ALIVE, CheckAllWornGear)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "_IsPlayerInRaidOrDungeon", EVENT_PLAYER_ACTIVATED, IsPlayerInRaidOrDungeon)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "_TransferGold", EVENT_OPEN_BANK, TransferCurrenciesToBank)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "_CheckEquippedGearPiece", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "_CheckAllWornGear", EVENT_PLAYER_ACTIVATED, CheckAllWornGear)
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "_CheckAllWornGear", EVENT_PLAYER_ALIVE, CheckAllWornGear)
 end
 
 SLASH_COMMANDS["/house"] = function()

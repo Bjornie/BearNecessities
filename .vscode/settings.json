@@ -103,6 +103,7 @@
         "GetItemName",
         "GetItemLink",
         "IsUnitDead",
-        "EVENT_PLAYER_ALIVE"
+        "EVENT_PLAYER_ALIVE",
+        "BearNecessities_CheckPledges"
     ]
 }
