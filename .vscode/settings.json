@@ -104,6 +104,7 @@
         "GetItemLink",
         "IsUnitDead",
         "EVENT_PLAYER_ALIVE",
-        "BearNecessities_CheckPledges"
+        "BearNecessities_CheckPledges",
+        "IsPlayerInGroup"
     ]
 }

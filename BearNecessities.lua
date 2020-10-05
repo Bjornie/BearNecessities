@@ -241,9 +241,9 @@ function BN.FoodReminder()
     if noFood then d("|cFF0000You have no food buff!|r") end
 end
 
--- 
+-- Checks whether the player is in a group and in a dungeon or trial
 local function IsPlayerInRaidOrDungeon()
-    if IsPlayerInRaid() or IsUnitInDungeon("player") then isInRaidOrDungeon = true
+    if IsPlayerInGroup(GetDisplayName()) and (IsPlayerInRaid() or IsUnitInDungeon("player")) then isInRaidOrDungeon = true
     else isInRaidOrDungeon = false end
 
     -- Shouldn't be here, but I'm lazy
@@ -322,6 +322,11 @@ local function CheckAllWornGear()
     end
 end
 
+local function PlayerActivated()
+    IsPlayerInRaidOrDungeon()
+    CheckAllWornGear()
+end
+
 local function Initialise()
     BN.SavedVariables = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
 
@@ -371,11 +376,12 @@ local function Initialise()
 
     if BN.SavedVariables.isFoodEnabled then EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", BN.SavedVariables.foodReminderInterval * 1000, BN.FoodReminder) end
 
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "_IsPlayerInRaidOrDungeon", EVENT_PLAYER_ACTIVATED, IsPlayerInRaidOrDungeon)
     EVENT_MANAGER:RegisterForEvent(BN.name .. "_TransferGold", EVENT_OPEN_BANK, TransferCurrenciesToBank)
+
     EVENT_MANAGER:RegisterForEvent(BN.name .. "_CheckEquippedGearPiece", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
-    EVENT_MANAGER:RegisterForEvent(BN.name .. "_CheckAllWornGear", EVENT_PLAYER_ACTIVATED, CheckAllWornGear)
     EVENT_MANAGER:RegisterForEvent(BN.name .. "_CheckAllWornGear", EVENT_PLAYER_ALIVE, CheckAllWornGear)
+
+    EVENT_MANAGER:RegisterForEvent(BN.name .. "_PlayerActivated", EVENT_PLAYER_ACTIVATED, PlayerActivated)
 end
 
 SLASH_COMMANDS["/house"] = function()
