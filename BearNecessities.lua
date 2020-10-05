@@ -210,7 +210,7 @@ local function DungeonFinder()
             elseif Pledges[control.node.data.rawName] == true then control.text:SetText(control.text:GetText() .. " |c00FF00(Completed)|r") end
 
             achievementIcons = IsAchievementComplete(DungeonAchievements[id].clear) and "|t20:20:/esoui/art/cadwell/check.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t"
-            achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].hardMode) and "|t20:20:/esoui/art/treeicons/gamepad/achievement_categoryicon_veterandungeons.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds:|t")
+            achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].hardMode) and "|t20:20:/esoui/art/treeicons/gamepad/achievement_categoryicon_veterandungeons.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t")
             achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].speed) and "|t20:20:/esoui/art/mounts/gamepad/gp_ridingskill_speed.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t")
             achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].noDeath) and "|t20:20:/esoui/art/deathrecap/deathrecap_killingblow_icon.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t")
             achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].triple) and "|t20:20:/esoui/art/market/keyboard/esoplus_chalice_white2_64.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t")
