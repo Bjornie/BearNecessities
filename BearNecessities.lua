@@ -169,9 +169,9 @@ local function PositionAchievementIcons(name, parent, string)
     local control = _G[name] or WINDOW_MANAGER:CreateControl(name, parent, CT_LABEL)
 
     control:ClearAnchors()
-    control:SetAnchor(LEFT, parent, LEFT, 450)
+    control:SetAnchor(LEFT, parent, LEFT, 400)
     control:SetColor(1, 1, 1, 1)
-    control:SetDimensions(80, 20)
+    control:SetDimensions(100, 20)
     control:SetFont("ZOFontGameLarge")
     control:SetHidden(false)
     control:SetHorizontalAlignment(0)
@@ -307,6 +307,7 @@ local function CheckEquippedGearPiece(_, bagId, slotIndex)
         while backpackSlotIndex do
             if IsItemSoulGem(SOUL_GEM_TYPE_FILLED, BAG_BACKPACK, backpackSlotIndex) then
                 ChargeItemWithSoulGem(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
+                d("|c00BFFFBear Necessities|r |cC5C29Eused a " .. GetItemLink(BAG_BACKPACK, backpackSlotIndex) .. " to recharge|r " .. GetItemLink(BAG_WORN, slotIndex))
                 break
             end
 
