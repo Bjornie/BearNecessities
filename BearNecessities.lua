@@ -279,9 +279,9 @@ local function TransferCurrenciesToBank()
 end
 
 local function IsEnchantmentEffectivenessReduced(bagId, slotIndex)
-    local charges, maxCharges = GetChargeInfoForItem(bagId, slotIndex)
+    local currentCharges, maxCharges = GetChargeInfoForItem(bagId, slotIndex)
 
-    return maxCharges > 0 and charges == 0
+    return maxCharges > 0 and currentCharges == 0
 end
 
 -- Repairs broken gear and recharges drained weapons
