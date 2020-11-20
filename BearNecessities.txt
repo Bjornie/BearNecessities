@@ -1,8 +1,9 @@
 ## Title: Bear Necessities
 ## Version: 1.0.0
 ## APIVersion: 100032
-## Author: |c00BFFFBjørnTheBurr|r
+## Author: |c00BFFFBjørn|r
 ## SavedVariables: BearNecessitiesSV
 
 BearNecessities.lua
+BearNecessities.xml
 BearNecessitiesMenu.lua

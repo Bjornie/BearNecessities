@@ -191,11 +191,12 @@ local function DungeonFinder()
     if isVeteran == 3 and headerNormal.text:GetColor() == 1 then headerNormal:OnMouseUp(true) end
 
     for i = 1, GetNumJournalQuests() do
-        local questName, _, _, _, _, completed, _, _, _, questType = GetJournalQuestInfo(i)
+        local questName, _, _, _, activeStepTrackerOverrideText, _, _, _, _, questType = GetJournalQuestInfo(i)
 
         if questType == QUEST_TYPE_UNDAUNTED_PLEDGE then
             questName = questName:gsub(".*:%s*", "")
-            Pledges[questName] = completed
+            if string.find(questName, "Banished Cells") then questName = "The " .. questName end
+            Pledges[questName] = "Return" == string.match(activeStepTrackerOverrideText, "Return")
         end
     end
 
@@ -245,9 +246,6 @@ end
 local function IsPlayerInRaidOrDungeon()
     if IsPlayerInGroup(GetDisplayName()) and (IsPlayerInRaid() or IsUnitInDungeon("player")) then isInRaidOrDungeon = true
     else isInRaidOrDungeon = false end
-
-    -- Shouldn't be here, but I'm lazy
-    ZO_AlertTextNotification:SetHidden(true)
 end
 
 -- Moves all character currencies to bank
@@ -279,9 +277,9 @@ local function TransferCurrenciesToBank()
 end
 
 local function IsEnchantmentEffectivenessReduced(bagId, slotIndex)
-    local currentCharges, maxCharges = GetChargeInfoForItem(bagId, slotIndex)
+    local charges, maxCharges = GetChargeInfoForItem(bagId, slotIndex)
 
-    return maxCharges > 0 and currentCharges == 0
+    return maxCharges > 0 and charges == 1
 end
 
 -- Repairs broken gear and recharges drained weapons
