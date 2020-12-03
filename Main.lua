@@ -142,11 +142,12 @@ local function CheckPledges()
 
     for i = 1, container:GetNumChildren() do
         local control = container:GetChild(i)
+        local zoneId = control.node.data.zoneId
 
-        if Pledges[control.node.data.rawName] == false and control.check:GetState() == 0 then
+        if Pledges[zoneId] == false and control.check:GetState() == 0 then
             control.check:SetState(BSTATE_PRESSED, true)
             ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(control.node.data)
-        elseif Pledges[control.node.data.rawName] == false and control.check:GetState() == 1 then
+        elseif Pledges[zoneId] == false and control.check:GetState() == 1 then
             control.check:SetState(BSTATE_NORMAL, true)
             ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(control.node.data)
         end
@@ -156,12 +157,14 @@ end
 -- Creates 'Un-/Check Pledges' button
 local function BuildPledgeButton()
     BearNecessities_CheckPledges:SetWidth(200)
-    BearNecessities_CheckPledges:SetHeight(28)
     BearNecessities_CheckPledges:SetText("Un-/Check Pledges")
-    BearNecessities_CheckPledges:ClearAnchors()
-    BearNecessities_CheckPledges:SetAnchor(BOTTOM, ZO_SearchingForGroup, BOTTOM, 0, -76)
+    BearNecessities_CheckPledges:SetAnchor(BOTTOM, ZO_SearchingForGroupLeaveQueueButton, TOP, 0, -10)
     BearNecessities_CheckPledges:SetClickSound("Click")
     BearNecessities_CheckPledges:SetHandler("OnClicked", CheckPledges)
+
+    
+    ZO_SearchingForGroupActualTime:ClearAnchors()
+    ZO_SearchingForGroupActualTime:SetAnchor(BOTTOM, BearNecessities_CheckPledges, TOP)
 end
 
 -- Positions completed achievements icons next to dungeon names in Dungeon Finder
@@ -183,21 +186,14 @@ end
 local function DungeonFinder()
     local isVeteran = GetPlayerChampionPointsEarned() >= 160 and 3 or 2
     local headerNormal = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildZO_ActivityFinderTemplateNavigationHeader_Keyboard1"]
-    local container
-    local control
-    local id
-    local achievementIcons
+    local activeStepTrackerOverrideText, questType, container, control, id, zoneId, achievementIcons, _
 
     if isVeteran == 3 and headerNormal.text:GetColor() == 1 then headerNormal:OnMouseUp(true) end
 
     for i = 1, GetNumJournalQuests() do
-        local questName, _, _, _, activeStepTrackerOverrideText, _, _, _, _, questType = GetJournalQuestInfo(i)
+        _, _, _, _, activeStepTrackerOverrideText, _, _, _, _, questType = GetJournalQuestInfo(i)
 
-        if questType == QUEST_TYPE_UNDAUNTED_PLEDGE then
-            questName = questName:gsub(".*:%s*", "")
-            if string.find(questName, "Banished Cells") then questName = "The " .. questName end
-            Pledges[questName] = "Return" == string.match(activeStepTrackerOverrideText, "Return")
-        end
+        if questType == QUEST_TYPE_UNDAUNTED_PLEDGE then Pledges[GetZoneId(GetJournalQuestStartingZone(i))] = "Return" == string.match(activeStepTrackerOverrideText, "Return") end
     end
 
     for c = 2, 3 do
@@ -206,9 +202,10 @@ local function DungeonFinder()
         for i = 1, container:GetNumChildren() do
             control = container:GetChild(i)
             id = control.node.data.id
+            zoneId = control.node.data.zoneId
 
-            if Pledges[control.node.data.rawName] == false then control.text:SetText(control.text:GetText() .. " |c00BFFF(Pledge)|r")
-            elseif Pledges[control.node.data.rawName] == true then control.text:SetText(control.text:GetText() .. " |c00FF00(Completed)|r") end
+            if Pledges[zoneId] == false then control.text:SetText(control.text:GetText() .. " |c00BFFF(Pledge)|r")
+            elseif Pledges[zoneId] == true then control.text:SetText(control.text:GetText() .. " |c00FF00(Completed)|r") end
 
             achievementIcons = IsAchievementComplete(DungeonAchievements[id].clear) and "|t20:20:/esoui/art/cadwell/check.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t"
             achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].hardMode) and "|t20:20:/esoui/art/treeicons/gamepad/achievement_categoryicon_veterandungeons.dds|t" or "|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t")
@@ -361,14 +358,10 @@ local function Initialise()
     BuildPledgeButton()
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, "OnEffectivelyShown", function()
         zo_callLater(DungeonFinder, 100)
-        ZO_SearchingForGroupStatus:ClearAnchors()
-        ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, ZO_SearchingForGroup, BOTTOM, 0, -112)
     end)
 
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, "OnEffectivelyHidden", function()
         Pledges = {}
-        ZO_SearchingForGroupStatus:ClearAnchors()
-        ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, ZO_SearchingForGroupEstimatedTime, TOP)
     end)
 
     BN.BuildMenu()
