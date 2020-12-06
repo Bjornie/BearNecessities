@@ -26,11 +26,11 @@ function BN.BuildMenu()
         {
             type = "checkbox",
             name = "Food Reminder",
-            getFunc = function() return BN.SavedVariables.isFoodEnabled end,
+            getFunc = function() return BN.SV.isFoodEnabled end,
             setFunc = function(value)
-                BN.SavedVariables.isFoodEnabled = value
+                BN.SV.isFoodEnabled = value
 
-                if value then EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", BN.SavedVariables.foodReminderInterval * 1000, BN.FoodReminder)
+                if value then EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", BN.SV.foodReminderInterval * 1000, BN.FoodReminder)
                 else EVENT_MANAGER:UnregisterForUpdate(BN.name .. "FoodReminder") end
             end,
         },
@@ -42,9 +42,9 @@ function BN.BuildMenu()
             max = 60,
             step = 1,
             default = 30,
-            getFunc = function() return BN.SavedVariables.foodReminderInterval end,
+            getFunc = function() return BN.SV.foodReminderInterval end,
             setFunc = function(value)
-                BN.SavedVariables.foodReminderInterval = value
+                BN.SV.foodReminderInterval = value
                 EVENT_MANAGER:UnregisterForUpdate(BN.name .. "FoodReminder")
                 EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", value * 1000, BN.FoodReminder)
             end,
@@ -57,17 +57,17 @@ function BN.BuildMenu()
             max = 60,
             step = 1,
             default = 10,
-            getFunc = function() return BN.SavedVariables.foodReminderThreshold end,
-            setFunc = function(value) BN.SavedVariables.foodReminderThreshold = value end,
+            getFunc = function() return BN.SV.foodReminderThreshold end,
+            setFunc = function(value) BN.SV.foodReminderThreshold = value end,
         },
         {
             type = "checkbox",
             name = "Hide Boss Compass Health Bar",
-            getFunc = function() return BN.SavedVariables.doHideBossCompassHealthBar end,
-            setFunc = function(value) BN.SavedVariables.doHideBossCompassHealthBar = value end,
+            getFunc = function() return BN.SV.doHideBossCompassHealthBar end,
+            setFunc = function(value) BN.SV.doHideBossCompassHealthBar = value end,
         }
     }
 
-    LibAddonMenu2:RegisterAddonPanel(BN.name, PanelData)
-    LibAddonMenu2:RegisterOptionControls(BN.name, OptionsTable)
+    LibAddonMenu2:RegisterAddonPanel(BN.name .. 'Options', PanelData)
+    LibAddonMenu2:RegisterOptionControls(BN.name .. 'Options', OptionsTable)
 end

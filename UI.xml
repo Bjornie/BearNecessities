@@ -1,0 +1,18 @@
+<GuiXml>
+    <Controls>
+        <TopLevelControl name="BearNecessities_GroupFrame" clampedToScreen="true" hidden="true" mouseEnabled="true" movable="true" resizeToFitDescendents="true">
+            <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" offsetX="100" offsetY="100" />
+            <Controls>
+                <Texture name="$(parent)_Texture" textureFile="esoui/art/lfg/gamepad/gp_lfg_icon_groupsize.dds">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                    <Dimensions x="64" y="64" />
+                </Texture>
+                <Label name="$(parent)_Label" color="FFFFFF" font="$(BOLD_FONT)|$(KB_32)|soft-shadow-thick" text="9/12">
+                    <Anchor point="LEFT" relativeTo="$(parent)_Texture" relativePoint="RIGHT" />
+                </Label>
+            </Controls>
+        </TopLevelControl>
+
+        <Label name="BearNecessities_CloudrestShade" color="960096" font="$(CHAT_FONT)|$(KB_24)|thick-outline" text="@AccountName" virtual="true" />
+    </Controls>
+</GuiXml>
