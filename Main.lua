@@ -10,6 +10,8 @@ BearNecessities = {
         foodReminderInterval = 30,
         foodReminderThreshold = 600,
         doHideBossCompassHealthBar = false,
+        groupFrameLeft = 0,
+        groupFrameTop = 0,
     },
 }
 
@@ -138,7 +140,7 @@ local isVeteran = GetPlayerChampionPointsEarned() >= 160 and 3 or 2
 
 local isGroupHidden = false
 
-local groupSize, groupMembersAlive
+local groupSizeOnline, groupMembersAlive = 0, 0
 
 local function AddSimpleFragment(control, condition)
     local f = ZO_SimpleSceneFragment:New(control)
@@ -147,36 +149,17 @@ local function AddSimpleFragment(control, condition)
 
     HUD_SCENE:AddFragment(f)
     HUD_UI_SCENE:AddFragment(f)
+
+    return f
 end
 
 local function CreateSceneFragment()
-    local function FragmentCondition()
+    local function GroupFrameFragmentCondition()
+        BearNecessities_GroupFrame_Label:SetText(string.format('%d/%d', groupMembersAlive, groupSizeOnline))
         return IsUnitGrouped('player')
     end
 
-    BN_FRAGMENT = AddSimpleFragment(BearNecessities_GroupFrame, FragmentCondition)
-end
-
--- Notifies player in chat when food is about to run out or if no food buff is active
-function BN.FoodReminder()
-    if not isInRaidOrDungeon then return end
-
-    local noFood = true
-    local finish, abilityId, _
-
-    for i = 1, GetNumBuffs('player') do
-        _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
-
-        if FoodList[abilityId] then
-            noFood = false
-            local buffFoodRemaining = finish - GetGameTimeSeconds()
-            local foodFormattedTime = ZO_FormatTime(buffFoodRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
-
-            if buffFoodRemaining <= BN.SV.foodReminderThreshold * 60 then d('|c00BFFFYour food buff is expiring in: |r' .. foodFormattedTime) end
-        end
-    end
-
-    if noFood then d('|cFF0000You have no food buff!|r') end
+    BN_FRAGMENT = AddSimpleFragment(BearNecessities_GroupFrame, GroupFrameFragmentCondition)
 end
 
 -- Un-/checks pledges in Dungeon Finder
@@ -207,8 +190,9 @@ local function BuildPledgeButton()
     BearNecessities_CheckPledges:SetClickSound('Click')
     BearNecessities_CheckPledges:SetHandler('OnClicked', CheckPledges)
 
-    ZO_SearchingForGroupActualTime:ClearAnchors()
-    ZO_SearchingForGroupActualTime:SetAnchor(BOTTOM, BearNecessities_CheckPledges, TOP)
+    -- ZO_SearchingForGroupActualTime:ClearAnchors()
+    -- ZO_SearchingForGroupActualTime:SetAnchor(BOTTOM, BearNecessities_CheckPledges, TOP)
+    BN.BuildDungeonQuestButton()
 end
 
 -- Positions completed achievements icons next to dungeon names in Dungeon Finder
@@ -262,7 +246,7 @@ local function DungeonFinder()
 end
 
 -- Moves all character currencies to bank
-local function TransferCurrenciesToBank()
+local function TransferCurrenciesToBank(eventCode, bankBag)
     local ap = GetCurrencyAmount(CURT_ALLIANCE_POINTS, CURRENCY_LOCATION_CHARACTER)
     local gold = GetCurrencyAmount(CURT_MONEY, CURRENCY_LOCATION_CHARACTER)
     local tv = GetCurrencyAmount(CURT_TELVAR_STONES, CURRENCY_LOCATION_CHARACTER)
@@ -270,22 +254,22 @@ local function TransferCurrenciesToBank()
 
     if ap > 0 then
         TransferCurrency(CURT_ALLIANCE_POINTS, ap, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF' .. ap .. '|r |c00FF00Alliance Points|r')
+        df('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF%d|r |c00FF00Alliance Points|r', ap)
     end
 
     if gold > 0 then
         TransferCurrency(CURT_MONEY, gold, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF' .. gold .. '|r |cFFFF00Gold|r')
+        df('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF%d|r |cFFFF00Gold|r', gold)
     end
 
     if tv > 0 then
         TransferCurrency(CURT_TELVAR_STONES, tv, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF' .. tv .. '|r |c5EB9D7Tel Var Stones|r')
+        df('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF%d|r |c5EB9D7Tel Var Stones|r', tv)
     end
 
     if wv > 0 then
         TransferCurrency(CURT_WRIT_VOUCHERS, wv, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
-        d('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF' .. wv .. '|r |cE6C563Writ Vouchers|r')
+        df('|c00BFFFBear Necessities|r |cC5C29Ehas moved|r |cFFFFFF%d|r |cE6C563Writ Vouchers|r', wv)
     end
 end
 
@@ -296,7 +280,7 @@ local function IsEnchantmentEffectivenessReduced(bagId, slotIndex)
 end
 
 -- Repairs broken gear and recharges drained weapons
-local function CheckEquippedGearPiece(_, bagId, slotIndex)
+local function CheckEquippedGearPiece(eventCode, bagId, slotIndex, isNewItem, itemSoundCategory, inventoryUpdateReason, stackCountChange)
     if IsUnitDead('player') then return end
     if bagId ~= BAG_WORN then return end
 
@@ -306,7 +290,7 @@ local function CheckEquippedGearPiece(_, bagId, slotIndex)
         while backpackSlotIndex do
             if IsItemRepairKit(BAG_BACKPACK, backpackSlotIndex) then
                 RepairItemWithRepairKit(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
-                d('|c00BFFFBear Necessities|r |cC5C29Eused a ' .. GetItemLink(BAG_BACKPACK, backpackSlotIndex) .. ' to repair|r ' .. GetItemLink(BAG_WORN, slotIndex))
+                df('|c00BFFFBear Necessities|r |cC5C29Eused a %s to repair|r %s', GetItemLink(BAG_BACKPACK, backpackSlotIndex), GetItemLink(BAG_WORN, slotIndex))
                 break
             end
 
@@ -318,7 +302,7 @@ local function CheckEquippedGearPiece(_, bagId, slotIndex)
         while backpackSlotIndex do
             if IsItemSoulGem(SOUL_GEM_TYPE_FILLED, BAG_BACKPACK, backpackSlotIndex) then
                 ChargeItemWithSoulGem(bagId, slotIndex, BAG_BACKPACK, backpackSlotIndex)
-                d('|c00BFFFBear Necessities|r |cC5C29Eused a ' .. GetItemLink(BAG_BACKPACK, backpackSlotIndex) .. ' to recharge|r ' .. GetItemLink(BAG_WORN, slotIndex))
+                df('|c00BFFFBear Necessities|r |cC5C29Eused a %s to recharge|r %s', GetItemLink(BAG_BACKPACK, backpackSlotIndex), GetItemLink(BAG_WORN, slotIndex))
                 break
             end
 
@@ -327,62 +311,111 @@ local function CheckEquippedGearPiece(_, bagId, slotIndex)
     end
 end
 
--- Checks whether the player is in a group and in a dungeon or trial
-local function IsPlayerInRaidOrDungeon()
-    if IsPlayerInGroup(GetDisplayName()) and (IsPlayerInRaid() or IsUnitInDungeon('player')) then isInRaidOrDungeon = true
-    else isInRaidOrDungeon = false end
-end
-
 -- Checks all worn gear if they're broken or drained
-local function CheckAllWornGear()
+local function CheckAllWornGear(eventCode)
     for _, slotIndex in ipairs(EquipmentSlots) do
         CheckEquippedGearPiece(_, BAG_WORN, slotIndex)
     end
-end
-
-local function PlayerActivated()
-    IsPlayerInRaidOrDungeon()
-    CheckAllWornGear()
 end
 
 local function DeclineQuestShare(eventCode, questId)
     if questId then DeclineSharedQuest(questId) end
 end
 
-local function UpdateGroupFrame(eventCode, memberCharacterName)
-    ZO_UnitFramesGroups:SetHidden(true)
-
-    if IsUnitGrouped('player') then
-        groupSize = GetGroupSize()
-        groupMembersAlive = groupMembersAlive and groupMembersAlive + 1 or groupSize
-
-        BearNecessities_GroupFrame:SetHidden(false)
-        BearNecessities_GroupFrame_Label:SetText(string.format('%i/%i', groupMembersAlive, groupSize))
-    else
-        groupMembersAlive = nil
-        BearNecessities_GroupFrame:SetHidden(true)
-    end
-end
-
+-- Cloudrest Shade buffId = 102271
 local function UpdateDeath(eventCode, unitTag, isDead)
-    if not DoesUnitExist(unitTag) then return end
-    if not ZO_Group_IsGroupUnitTag(unitTag) then return end
+    if not DoesUnitExist(unitTag) or not ZO_Group_IsGroupUnitTag(unitTag) then return end
 
-    local finish, abilityId, _
-
-    if isDead then
-        groupMembersAlive = groupMembersAlive - 1
-
-        for i = 1, GetNumBuffs(unitTag) do
-            _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
-
-            if abilityId == 102271 then
-                -- ObjectPool
-            end
-        end
+    if isDead then groupMembersAlive = groupMembersAlive - 1
     else groupMembersAlive = groupMembersAlive + 1 end
 
-    BearNecessities_GroupFrame_Label:SetText(string.format('%i/%i', groupMembersAlive, groupSize))
+    BN_FRAGMENT:Refresh()
+end
+
+-- EVENT_GROUP_MEMBER_CONNECTED_STATUS(eventCode, unitTag, isOnline)
+-- EVENT_GROUP_MEMBER_JOINED(eventCode, memberCharacterName, memberDisplayName, isLocalPlayer)
+-- EVENT_GROUP_MEMBER_LEFT(eventCode, memberCharacterName, reason, isLocalPlayer, isLeader, memberDisplayName, actionRequiredVote)
+-- EVENT_GROUP_UPDATE(eventCode)
+local function UpdateGroupFrame(eventCode, ...)
+    ZO_UnitFramesGroups:SetHidden(true)
+
+    local tag, isOnline, isDead
+    groupSizeOnline, groupMembersAlive = 0, 0
+
+    for i = 1, GetGroupSize() do
+        tag = GetGroupUnitTagByIndex(i)
+        isOnline = IsUnitOnline(tag)
+        isDead = IsUnitDead(tag)
+
+        if isOnline then
+            groupSizeOnline = groupSizeOnline + 1
+            if not isDead then groupMembersAlive = groupMembersAlive + 1 end
+        end
+    end
+
+    BN_FRAGMENT:Refresh()
+end
+
+-- Checks whether the player is in a group and in a dungeon or trial
+local function IsPlayerInRaidOrDungeon()
+    if IsPlayerInGroup(GetDisplayName()) and (IsPlayerInRaid() or IsUnitInDungeon('player')) then isInRaidOrDungeon = true
+    else isInRaidOrDungeon = false end
+end
+
+local function OnPlayerActivated(eventCode, initial)
+    SetCrownCrateNPCVisible(isGroupHidden)
+    CheckAllWornGear()
+    UpdateGroupFrame()
+    IsPlayerInRaidOrDungeon()
+end
+
+local function RegisterEvents()
+    EM:RegisterForEvent(BN.name, EVENT_OPEN_BANK, TransferCurrenciesToBank)
+
+    EM:RegisterForEvent(BN.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
+    EM:RegisterForEvent(BN.name, EVENT_PLAYER_ALIVE, CheckAllWornGear)
+
+    EM:RegisterForEvent(BN.name, EVENT_QUEST_SHARED, DeclineQuestShare)
+
+    EM:RegisterForEvent(BN.name, EVENT_UNIT_DEATH_STATE_CHANGED, UpdateDeath)
+    EM:AddFilterForEvent(EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, 'group')
+    EM:RegisterForEvent(BN.name, EVENT_GROUP_MEMBER_JOINED, UpdateGroupFrame)
+    EM:RegisterForEvent(BN.name, EVENT_GROUP_MEMBER_LEFT, UpdateGroupFrame)
+    EM:RegisterForEvent(BN.name, EVENT_GROUP_UPDATE, UpdateGroupFrame)
+
+    EM:RegisterForEvent(BN.name, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+end
+
+local function RestorePosition()
+    BearNecessities_GroupFrame:ClearAnchors()
+    BearNecessities_GroupFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.groupFrameLeft, BN.SV.groupFrameTop)
+end
+
+-- Notifies player in chat when food is about to run out or if no food buff is active
+function BN.FoodReminder()
+    if not isInRaidOrDungeon then return end
+
+    local noFood = true
+    local finish, abilityId, _
+
+    for i = 1, GetNumBuffs('player') do
+        _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
+
+        if FoodList[abilityId] then
+            noFood = false
+            local buffFoodRemaining = finish - GetGameTimeSeconds()
+            local foodFormattedTime = ZO_FormatTime(buffFoodRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
+
+            if buffFoodRemaining <= BN.SV.foodReminderThreshold * 60 then d('|c00BFFFYour food buff is expiring in: |r' .. foodFormattedTime) end
+        end
+    end
+
+    if noFood then d('|cFF0000You have no food buff!|r') end
+end
+
+function BN.GroupFrameOnMoveStop()
+    BN.SV.groupFrameLeft = BearNecessities_GroupFrame:GetLeft()
+    BN.SV.groupFrameTop = BearNecessities_GroupFrame:GetTop()
 end
 
 local function Initialise()
@@ -421,20 +454,9 @@ local function Initialise()
     BuildPledgeButton()
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyShown', function() zo_callLater(DungeonFinder, 100) end)
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function() Pledges = {} end)
+    RegisterEvents()
+    RestorePosition()
     BN.BuildMenu()
-
-    EM:RegisterForEvent(BN.name .. 'TransferGold', EVENT_OPEN_BANK, TransferCurrenciesToBank)
-
-    EM:RegisterForEvent(BN.name .. 'CheckEquippedGearPiece', EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
-    EM:RegisterForEvent(BN.name .. 'CheckAllWornGear', EVENT_PLAYER_ALIVE, CheckAllWornGear)
-
-    EM:RegisterForEvent(BN.name .. 'PlayerActivated', EVENT_PLAYER_ACTIVATED, PlayerActivated)
-
-    EM:RegisterForEvent(BN.name .. 'DeclineSharedQuests', EVENT_QUEST_SHARED, DeclineQuestShare)
-
-    EM:RegisterForEvent(BN.name .. 'GroupFrame', EVENT_GROUP_MEMBER_JOINED, UpdateGroupFrame)
-    EM:RegisterForEvent(BN.name .. 'GroupFrame', EVENT_GROUP_MEMBER_LEFT, UpdateGroupFrame)
-    EM:RegisterForEvent(BN.name .. 'GroupFrame', EVENT_UNIT_DEATH_STATE_CHANGED, UpdateDeath)
 end
 
 SLASH_COMMANDS['/house'] = function() RequestJumpToHouse(GetHousingPrimaryHouse()) end

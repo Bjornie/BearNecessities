@@ -11,6 +11,9 @@
                     <Anchor point="LEFT" relativeTo="$(parent)_Texture" relativePoint="RIGHT" />
                 </Label>
             </Controls>
+            <OnMoveStop>
+                BearNecessities.GroupFrameOnMoveStop()
+            </OnMoveStop>
         </TopLevelControl>
 
         <Label name="BearNecessities_CloudrestShade" color="960096" font="$(CHAT_FONT)|$(KB_24)|thick-outline" text="@AccountName" virtual="true" />

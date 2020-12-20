@@ -1,4 +1,5 @@
 local BN = BearNecessities
+local EM = GetEventManager()
 
 function BN.BuildMenu()
     local PanelData = {
@@ -22,7 +23,6 @@ function BN.BuildMenu()
             setFunc = function(value) BearNecessitiesSV.Default[GetDisplayName()]["$AccountWide"].isAccountWide = value end,
             requiresReload = true,
         },
-        -- Food Reminder
         {
             type = "checkbox",
             name = "Food Reminder",
@@ -30,8 +30,8 @@ function BN.BuildMenu()
             setFunc = function(value)
                 BN.SV.isFoodEnabled = value
 
-                if value then EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", BN.SV.foodReminderInterval * 1000, BN.FoodReminder)
-                else EVENT_MANAGER:UnregisterForUpdate(BN.name .. "FoodReminder") end
+                if value then EM:RegisterForUpdate(BN.name .. "FoodReminder", BN.SV.foodReminderInterval * 1000, BN.FoodReminder)
+                else EM:UnregisterForUpdate(BN.name .. "FoodReminder") end
             end,
         },
         {
@@ -45,8 +45,8 @@ function BN.BuildMenu()
             getFunc = function() return BN.SV.foodReminderInterval end,
             setFunc = function(value)
                 BN.SV.foodReminderInterval = value
-                EVENT_MANAGER:UnregisterForUpdate(BN.name .. "FoodReminder")
-                EVENT_MANAGER:RegisterForUpdate(BN.name .. "FoodReminder", value * 1000, BN.FoodReminder)
+                EM:UnregisterForUpdate(BN.name .. "FoodReminder")
+                EM:RegisterForUpdate(BN.name .. "FoodReminder", value * 1000, BN.FoodReminder)
             end,
         },
         {
