@@ -10,6 +10,7 @@ BearNecessities = {
         foodReminderInterval = 30,
         foodReminderThreshold = 600,
         doHideBossCompassHealthBar = false,
+        doHideTargetHealthBar = false,
         groupFrameLeft = 0,
         groupFrameTop = 0,
     },
@@ -449,6 +450,7 @@ local function Initialise()
     end
 
     if BN.SV.isFoodEnabled then EM:RegisterForUpdate(BN.name .. 'FoodReminder', BN.SV.foodReminderInterval * 1000, BN.FoodReminder) end
+    if BN.SV.doHideTargetHealthBar then UNIT_FRAMES.staticFrames['reticleover']:SetHiddenForReason('BearNecessities', true) end
 
     CreateSceneFragment()
     BuildPledgeButton()
