@@ -13,6 +13,7 @@ BearNecessities = {
         doHideTargetHealthBar = false,
         groupFrameLeft = 0,
         groupFrameTop = 0,
+        moveCurrencies = true
     },
 }
 
@@ -248,6 +249,8 @@ end
 
 -- Moves all character currencies to bank
 local function TransferCurrenciesToBank(eventCode, bankBag)
+    if not BN.SV.moveCurrencies then return end
+
     local ap = GetCurrencyAmount(CURT_ALLIANCE_POINTS, CURRENCY_LOCATION_CHARACTER)
     local gold = GetCurrencyAmount(CURT_MONEY, CURRENCY_LOCATION_CHARACTER)
     local tv = GetCurrencyAmount(CURT_TELVAR_STONES, CURRENCY_LOCATION_CHARACTER)
@@ -333,7 +336,6 @@ local function UpdateDeath(eventCode, unitTag, isDead)
     BN_FRAGMENT:Refresh()
 end
 
--- EVENT_GROUP_MEMBER_CONNECTED_STATUS(eventCode, unitTag, isOnline)
 -- EVENT_GROUP_MEMBER_JOINED(eventCode, memberCharacterName, memberDisplayName, isLocalPlayer)
 -- EVENT_GROUP_MEMBER_LEFT(eventCode, memberCharacterName, reason, isLocalPlayer, isLeader, memberDisplayName, actionRequiredVote)
 -- EVENT_GROUP_UPDATE(eventCode)

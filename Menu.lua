@@ -72,6 +72,12 @@ function BN.BuildMenu()
             getFunc = function() return BN.SV.doHideTargetHealthBar end,
             setFunc = function(value) BN.SV.doHideTargetHealthBar = value end,
         },
+        {
+            type = 'checkbox',
+            name = 'Move All Currencies To Bank',
+            getFunc = function() return BN.SV.moveCurrencies end,
+            setFunc = function(value) BN.SV.moveCurrencies = value end,
+        },
     }
 
     LibAddonMenu2:RegisterAddonPanel(BN.name .. 'Options', PanelData)
