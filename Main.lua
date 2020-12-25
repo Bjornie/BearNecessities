@@ -13,7 +13,7 @@ BearNecessities = {
         doHideTargetHealthBar = false,
         groupFrameLeft = 0,
         groupFrameTop = 0,
-        moveCurrencies = true
+        moveCurrencies = false
     },
 }
 
