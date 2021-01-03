@@ -10,6 +10,7 @@ function BN.BuildMenu()
         author = '|c00BFFFBjørn|r',
         version = BN.version,
         registerForRefresh = true,
+        registerForDefaults = true,
     }
 
     local OptionsTable = {
@@ -21,10 +22,8 @@ function BN.BuildMenu()
             type = 'checkbox',
             name = 'Account-Wide Settings',
             getFunc = function() return BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide'].isAccountWide end,
-            setFunc = function(value)
-                BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide'].isAccountWide = value
-                BN.BuildMenu()
-            end,
+            setFunc = function(value) BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide'].isAccountWide = value end,
+            requiresReload = true,
             default = BN.Default.isAccountWide,
         },
         {
@@ -51,7 +50,7 @@ function BN.BuildMenu()
             min = 1,
             max = 60,
             width = 'half',
-            disabled = not BN.SV.isFoodEnabled,
+            disabled = function() return not BN.SV.isFoodEnabled end,
             default = BN.Default.foodReminderInterval,
         },
         {
@@ -62,7 +61,7 @@ function BN.BuildMenu()
             min = 1,
             max = 60,
             width = 'half',
-            disabled = not BN.SV.isFoodEnabled,
+            disabled = function() return not BN.SV.isFoodEnabled end,
             default = BN.Default.foodReminderThreshold,
         },
         {
@@ -90,7 +89,7 @@ function BN.BuildMenu()
             type = 'checkbox',
             name = 'Simple Group UI',
             getFunc = function() return BN.SV.isGroupUIEnabled end,
-            setFUnc = function(value) BN.SV.isGroupUIEnabled = value end,
+            setFunc = function(value) BN.SV.isGroupUIEnabled = value end,
             default = BN.Default.isGroupUIEnabled,
         }
     }
