@@ -8,12 +8,13 @@ BearNecessities = {
         isAccountWide = true,
         isFoodEnabled = true,
         foodReminderInterval = 30,
-        foodReminderThreshold = 600,
+        foodReminderThreshold = 10,
         doHideBossCompassHealthBar = false,
         doHideTargetHealthBar = false,
         groupFrameLeft = 0,
         groupFrameTop = 0,
-        moveCurrencies = false
+        moveCurrencies = false,
+        isGroupUIEnabled = false,
     },
 }
 
@@ -144,24 +145,17 @@ local isGroupHidden = false
 
 local groupSizeOnline, groupMembersAlive = 0, 0
 
-local function AddSimpleFragment(control, condition)
-    local f = ZO_SimpleSceneFragment:New(control)
-
-    if condition then f:SetConditional(condition) end
-
-    HUD_SCENE:AddFragment(f)
-    HUD_UI_SCENE:AddFragment(f)
-
-    return f
-end
-
 local function CreateSceneFragment()
     local function GroupFrameFragmentCondition()
         BearNecessities_GroupFrame_Label:SetText(string.format('%d/%d', groupMembersAlive, groupSizeOnline))
-        return IsUnitGrouped('player')
+        return BN.SV.isGroupUIEnabled and IsUnitGrouped('player')
     end
 
-    BN_FRAGMENT = AddSimpleFragment(BearNecessities_GroupFrame, GroupFrameFragmentCondition)
+    BN_FRAGMENT = ZO_SimpleSceneFragment:New(BearNecessities_GroupFrame)
+    BN_FRAGMENT:SetConditional(GroupFrameFragmentCondition)
+
+    HUD_SCENE:AddFragment(BN_FRAGMENT)
+    HUD_UI_SCENE:AddFragment(BN_FRAGMENT)
 end
 
 -- Un-/checks pledges in Dungeon Finder
