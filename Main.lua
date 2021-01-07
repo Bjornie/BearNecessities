@@ -6,15 +6,33 @@ BearNecessities = {
 
     Default = {
         isAccountWide = true,
+
         isFoodEnabled = true,
-        foodReminderInterval = 30,
+        foodLeft = 200,
+        foodTop = 200,
         foodReminderThreshold = 10,
+
         doHideBossCompassHealthBar = false,
         doHideTargetHealthBar = false,
+
+        isGroupUIEnabled = false,
         groupFrameLeft = 0,
         groupFrameTop = 0,
+
+        isAttributeUIEnabled = false,
+        healthLeft = 1460,
+        healthTop = 1513,
+        magickaLeft = 1360,
+        magickaTop = 1513,
+        staminaLeft = 1560,
+        staminaTop = 1513,
+        HealthColour = {0.65, 0.16, 0.16, 1},
+        MagickaColour = {0.16, 0.51, 0.76, 1},
+        StaminaColour = {0, 0.5, 0.4, 1},
+
+        isExpBarHidden = false,
+
         moveCurrencies = false,
-        isGroupUIEnabled = false,
     },
 }
 
@@ -135,7 +153,7 @@ local BN = BearNecessities
 local EM = GetEventManager()
 local WM = GetWindowManager()
 
-local BN_FRAGMENT
+local GROUP_FRAGMENT, HEALTH_FRAGMENT, MAGICKA_FRAGMENT, STAMINA_FRAGMENT, FOOD_FRAGMENT
 
 local isInRaidOrDungeon = false
 
@@ -145,17 +163,85 @@ local isGroupHidden = false
 
 local groupSizeOnline, groupMembersAlive = 0, 0
 
-local function CreateSceneFragment()
+local foodBuffRemaining, foodFormattedTime = 0, 0
+
+local function AddSimpleFragment(control, condition)
+    local f = ZO_SimpleSceneFragment:New(control)
+
+    if condition then f:SetConditional(condition) end
+
+    HUD_SCENE:AddFragment(f)
+    HUD_UI_SCENE:AddFragment(f)
+
+    return f
+end
+
+-- On-screen notification when food is about to run out or if no food buff is active
+local function FoodReminder()
+    if not BN.SV.isFoodEnabled or not isInRaidOrDungeon then return end
+
+    local noFood = true
+    local finish, abilityId
+
+    for i = 1, GetNumBuffs('player') do
+        _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
+
+        if FoodList[abilityId] then
+            noFood = false
+            foodBuffRemaining = finish - GetGameTimeSeconds()
+            foodFormattedTime = ZO_FormatTime(foodBuffRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
+
+            BearNecessities_FoodReminder_Timer:SetText(foodFormattedTime)
+        end
+    end
+
+    if noFood then BearNecessities_FoodReminder_Timer:SetText('|cFF0000EXPIRED|r') end
+end
+
+local function CreateSceneFragments()
     local function GroupFrameFragmentCondition()
         BearNecessities_GroupFrame_Label:SetText(string.format('%d/%d', groupMembersAlive, groupSizeOnline))
         return BN.SV.isGroupUIEnabled and IsUnitGrouped('player')
     end
 
-    BN_FRAGMENT = ZO_SimpleSceneFragment:New(BearNecessities_GroupFrame)
-    BN_FRAGMENT:SetConditional(GroupFrameFragmentCondition)
+    local function AttributeFragmentCondition()
+        return BN.SV.isAttributeUIEnabled
+    end
 
-    HUD_SCENE:AddFragment(BN_FRAGMENT)
-    HUD_UI_SCENE:AddFragment(BN_FRAGMENT)
+    local function FoodFragmentCondition()
+        if not BN.SV.isFoodEnabled or not isInRaidOrDungeon then return false end
+
+        local noFood = true
+        local finish, abilityId
+
+        for i = 1, GetNumBuffs('player') do
+            _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
+
+            if FoodList[abilityId] then
+                noFood = false
+                foodBuffRemaining = finish - GetGameTimeSeconds()
+
+                if foodBuffRemaining <= BN.SV.foodReminderThreshold * 60 then
+                    foodFormattedTime = ZO_FormatTime(foodBuffRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
+                    BearNecessities_FoodReminder_Timer:SetText(foodFormattedTime)
+
+                    return true
+                else return false end
+            end
+        end
+
+        if noFood then
+            BearNecessities_FoodReminder_Timer:SetText('|cFF0000EXPIRED|r')
+
+            return true
+        end
+    end
+
+    GROUP_FRAGMENT = AddSimpleFragment(BearNecessities_GroupFrame, GroupFrameFragmentCondition)
+    HEALTH_FRAGMENT = AddSimpleFragment(BearNecessities_Health, AttributeFragmentCondition)
+    MAGICKA_FRAGMENT = AddSimpleFragment(BearNecessities_Magicka, AttributeFragmentCondition)
+    STAMINA_FRAGMENT = AddSimpleFragment(BearNecessities_Stamina, AttributeFragmentCondition)
+    FOOD_FRAGMENT = AddSimpleFragment(BearNecessities_FoodReminder, FoodFragmentCondition)
 end
 
 -- Un-/checks pledges in Dungeon Finder
@@ -316,8 +402,8 @@ local function CheckAllWornGear(eventCode)
     end
 end
 
-local function DeclineQuestShare(eventCode, questId)
-    if questId then DeclineSharedQuest(questId) end
+local function DeclineQuestShare(eventCode, eventId)
+    if eventId then DeclineSharedQuest(eventId) end
 end
 
 -- Cloudrest Shade buffId = 102271
@@ -327,7 +413,7 @@ local function UpdateDeath(eventCode, unitTag, isDead)
     if isDead then groupMembersAlive = groupMembersAlive - 1
     else groupMembersAlive = groupMembersAlive + 1 end
 
-    BN_FRAGMENT:Refresh()
+    GROUP_FRAGMENT:Refresh()
 end
 
 -- EVENT_GROUP_MEMBER_JOINED(eventCode, memberCharacterName, memberDisplayName, isLocalPlayer)
@@ -350,7 +436,17 @@ local function UpdateGroupFrame(eventCode, ...)
         end
     end
 
-    BN_FRAGMENT:Refresh()
+    GROUP_FRAGMENT:Refresh()
+end
+
+local function OnPowerUpdate(_, _, _, powerType, powerValue, powerMax, powerEffectiveMax)
+    if powerValue == nil then powerValue, powerMax, powerEffectiveMax = GetUnitPower('player') end
+
+    local percentage = powerValue / powerMax * 100
+
+    if powerType == POWERTYPE_HEALTH then BearNecessities_Health_Text:SetText(string.format('%d%%', percentage))
+    elseif powerType == POWERTYPE_MAGICKA then BearNecessities_Magicka_Text:SetText(string.format('%d%%', percentage))
+    elseif powerType == POWERTYPE_STAMINA then BearNecessities_Stamina_Text:SetText(string.format('%d%%', percentage)) end
 end
 
 -- Checks whether the player is in a group and in a dungeon or trial
@@ -372,7 +468,7 @@ local function RegisterEvents()
     EM:RegisterForEvent(BN.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, CheckEquippedGearPiece)
     EM:RegisterForEvent(BN.name, EVENT_PLAYER_ALIVE, CheckAllWornGear)
 
-    EM:RegisterForEvent(BN.name, EVENT_QUEST_SHARED, DeclineQuestShare)
+    EM:RegisterForEvent(BN.name, EVENT_SCRIPTED_WORLD_EVENT_INVITE, DeclineQuestShare)
 
     EM:RegisterForEvent(BN.name, EVENT_UNIT_DEATH_STATE_CHANGED, UpdateDeath)
     EM:AddFilterForEvent(EVENT_UNIT_DEATH_STATE_CHANGED, REGISTER_FILTER_UNIT_TAG_PREFIX, 'group')
@@ -380,39 +476,52 @@ local function RegisterEvents()
     EM:RegisterForEvent(BN.name, EVENT_GROUP_MEMBER_LEFT, UpdateGroupFrame)
     EM:RegisterForEvent(BN.name, EVENT_GROUP_UPDATE, UpdateGroupFrame)
 
+    EM:RegisterForEvent(BN.name, EVENT_POWER_UPDATE, OnPowerUpdate)
+    EM:AddFilterForEvent(BN.name, EVENT_POWER_UPDATE, REGISTER_FILTER_UNIT_TAG, 'player')
+
     EM:RegisterForEvent(BN.name, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
 end
 
 local function RestorePosition()
     BearNecessities_GroupFrame:ClearAnchors()
     BearNecessities_GroupFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.groupFrameLeft, BN.SV.groupFrameTop)
-end
 
--- Notifies player in chat when food is about to run out or if no food buff is active
-function BN.FoodReminder()
-    if not isInRaidOrDungeon then return end
+    BearNecessities_Health:ClearAnchors()
+    BearNecessities_Health:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.healthLeft, BN.SV.healthTop)
 
-    local noFood = true
-    local finish, abilityId, _
+    BearNecessities_Magicka:ClearAnchors()
+    BearNecessities_Magicka:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.magickaLeft, BN.SV.magickaTop)
 
-    for i = 1, GetNumBuffs('player') do
-        _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
+    BearNecessities_Stamina:ClearAnchors()
+    BearNecessities_Stamina:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.staminaLeft, BN.SV.staminaTop)
 
-        if FoodList[abilityId] then
-            noFood = false
-            local buffFoodRemaining = finish - GetGameTimeSeconds()
-            local foodFormattedTime = ZO_FormatTime(buffFoodRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
-
-            if buffFoodRemaining <= BN.SV.foodReminderThreshold * 60 then d('|c00BFFFYour food buff is expiring in: |r' .. foodFormattedTime) end
-        end
-    end
-
-    if noFood then d('|cFF0000You have no food buff!|r') end
+    BearNecessities_FoodReminder:ClearAnchors()
+    BearNecessities_FoodReminder:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.foodLeft, BN.SV.foodTop)
 end
 
 function BN.GroupFrameOnMoveStop()
     BN.SV.groupFrameLeft = BearNecessities_GroupFrame:GetLeft()
     BN.SV.groupFrameTop = BearNecessities_GroupFrame:GetTop()
+end
+
+function BN.HealthOnMoveStop()
+    BN.SV.healthLeft = BearNecessities_Health:GetLeft()
+    BN.SV.healthTop = BearNecessities_Health:GetTop()
+end
+
+function BN.MagickaOnMoveStop()
+    BN.SV.magickaLeft = BearNecessities_Magicka:GetLeft()
+    BN.SV.magickaTop = BearNecessities_Magicka:GetTop()
+end
+
+function BN.StaminaOnMoveStop()
+    BN.SV.staminaLeft = BearNecessities_Stamina:GetLeft()
+    BN.SV.staminaTop = BearNecessities_Stamina:GetTop()
+end
+
+function BN.FoodOnMoveStop()
+    BN.SV.foodLeft = BearNecessities_FoodReminder:GetLeft()
+    BN.SV.foodTop = BearNecessities_FoodReminder:GetTop()
 end
 
 local function Initialise()
@@ -445,16 +554,27 @@ local function Initialise()
         COMPASS_FRAME:SetBossBarActive(totalHealth > 0)
     end
 
-    if BN.SV.isFoodEnabled then EM:RegisterForUpdate(BN.name .. 'FoodReminder', BN.SV.foodReminderInterval * 1000, BN.FoodReminder) end
     if BN.SV.doHideTargetHealthBar then UNIT_FRAMES.staticFrames['reticleover']:SetHiddenForReason('BearNecessities', true) end
+    if BN.SV.isExpBarHidden then
+        HUD_SCENE:RemoveFragment(PLAYER_PROGRESS_BAR_FRAGMENT)
+        HUD_UI_SCENE:RemoveFragment(PLAYER_PROGRESS_BAR_FRAGMENT)
+        LOOT_SCENE:RemoveFragment(PLAYER_PROGRESS_BAR_FRAGMENT)
+    end
+    if BN.SV.isAttributeUIEnabled then
+        HUD_SCENE:RemoveFragment(PLAYER_ATTRIBUTE_BARS_FRAGMENT)
+        HUD_UI_SCENE:RemoveFragment(PLAYER_ATTRIBUTE_BARS_FRAGMENT)
+        LOOT_SCENE:RemoveFragment(PLAYER_ATTRIBUTE_BARS_FRAGMENT)
+    end
 
-    CreateSceneFragment()
+    CreateSceneFragments()
     BuildPledgeButton()
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyShown', function() zo_callLater(DungeonFinder, 100) end)
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function() Pledges = {} end)
     RegisterEvents()
     RestorePosition()
     BN.BuildMenu()
+
+    EM:RegisterForUpdate(BN.name .. 'FoodReminder', 1000, function() FOOD_FRAGMENT:Refresh() end)
 end
 
 SLASH_COMMANDS['/house'] = function() RequestJumpToHouse(GetHousingPrimaryHouse()) end
