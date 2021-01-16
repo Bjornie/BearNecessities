@@ -4,7 +4,7 @@ BearNecessities = {
     svName = 'BearNecessitiesSV',
     svVersion = 1,
 
-    Default = {
+    defaults = {
         isAccountWide = true,
 
         isFoodEnabled = true,
@@ -20,11 +20,11 @@ BearNecessities = {
         groupFrameTop = 0,
 
         isAttributeUIEnabled = false,
-        healthLeft = 1460,
+        healthRight = 1460,
         healthTop = 1513,
-        magickaLeft = 1360,
+        magickaRight = 1360,
         magickaTop = 1513,
-        staminaLeft = 1560,
+        staminaRight = 1560,
         staminaTop = 1513,
         HealthColour = {0.65, 0.16, 0.16, 1},
         MagickaColour = {0.16, 0.51, 0.76, 1},
@@ -36,7 +36,7 @@ BearNecessities = {
     },
 }
 
-local EquipmentSlots =
+local equipmentSlots =
 {
     EQUIP_SLOT_HEAD,
     EQUIP_SLOT_CHEST,
@@ -51,7 +51,7 @@ local EquipmentSlots =
     EQUIP_SLOT_BACKUP_OFF,
 }
 
-local FoodList = {
+local foodList = {
     [61255] = 'bistat', -- Increase Max Health & Stamina
     [84720] = 'unique', -- Ghastly Eye Bowl
     [86673] = 'unique', -- Lava Foot Soup-And-Saltrice
@@ -60,7 +60,7 @@ local FoodList = {
     [127596] = 'unique', -- Bewitched Sugar Skulls
 }
 
-local DungeonAchievements = {
+local dungeonAchievements = {
     [2] = {clear = 294}, -- normal Fungal Grotto 1
     [3] = {clear = 301}, -- normal Spindleclutch 1
     [4] = {clear = 325}, -- normal The Banished Cells 1
@@ -147,7 +147,7 @@ local DungeonAchievements = {
     [510] = {clear = 2705, hardMode = 2706, speed = 2707, noDeath = 2708, triple = 2710}, -- veteran Castle Thorn
 }
 
-local Pledges = {}
+local pledges = {}
 
 local BN = BearNecessities
 local EM = GetEventManager()
@@ -176,28 +176,7 @@ local function AddSimpleFragment(control, condition)
     return f
 end
 
--- On-screen notification when food is about to run out or if no food buff is active
-local function FoodReminder()
-    if not BN.SV.isFoodEnabled or not isInRaidOrDungeon then return end
-
-    local noFood = true
-    local finish, abilityId
-
-    for i = 1, GetNumBuffs('player') do
-        _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
-
-        if FoodList[abilityId] then
-            noFood = false
-            foodBuffRemaining = finish - GetGameTimeSeconds()
-            foodFormattedTime = ZO_FormatTime(foodBuffRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
-
-            BearNecessities_FoodReminder_Timer:SetText(foodFormattedTime)
-        end
-    end
-
-    if noFood then BearNecessities_FoodReminder_Timer:SetText('|cFF0000EXPIRED|r') end
-end
-
+-- Bind UI elements to HUD and HUD_UI
 local function CreateSceneFragments()
     local function GroupFrameFragmentCondition()
         BearNecessities_GroupFrame_Label:SetText(string.format('%d/%d', groupMembersAlive, groupSizeOnline))
@@ -217,7 +196,7 @@ local function CreateSceneFragments()
         for i = 1, GetNumBuffs('player') do
             _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
 
-            if FoodList[abilityId] then
+            if foodList[abilityId] then
                 noFood = false
                 foodBuffRemaining = finish - GetGameTimeSeconds()
 
@@ -252,10 +231,10 @@ local function CheckPledges()
         local control = container:GetChild(i)
         local zoneId = control.node.data.zoneId
 
-        if Pledges[zoneId] == false and control.check:GetState() == 0 then
+        if pledges[zoneId] == false and control.check:GetState() == 0 then
             control.check:SetState(BSTATE_PRESSED, true)
             ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(control.node.data)
-        elseif Pledges[zoneId] == false and control.check:GetState() == 1 then
+        elseif pledges[zoneId] == false and control.check:GetState() == 1 then
             control.check:SetState(BSTATE_NORMAL, true)
             ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(control.node.data)
         end
@@ -302,7 +281,7 @@ local function DungeonFinder()
     for i = 1, GetNumJournalQuests() do
         _, _, _, _, activeStepTrackerOverrideText, _, _, _, _, questType = GetJournalQuestInfo(i)
 
-        if questType == QUEST_TYPE_UNDAUNTED_PLEDGE then Pledges[GetZoneId(GetJournalQuestStartingZone(i))] = 'Return' == string.match(activeStepTrackerOverrideText, 'Return') end
+        if questType == QUEST_TYPE_UNDAUNTED_PLEDGE then pledges[GetZoneId(GetJournalQuestStartingZone(i))] = 'Return' == string.match(activeStepTrackerOverrideText, 'Return') end
     end
 
     for c = 2, 3 do
@@ -313,14 +292,14 @@ local function DungeonFinder()
             id = control.node.data.id
             zoneId = control.node.data.zoneId
 
-            if Pledges[zoneId] == false then control.text:SetText(control.text:GetText() .. ' |c00BFFF(Pledge)|r')
-            elseif Pledges[zoneId] == true then control.text:SetText(control.text:GetText() .. ' |c00FF00(Completed)|r') end
+            if pledges[zoneId] == false then control.text:SetText(control.text:GetText() .. ' |c00BFFF(Pledge)|r')
+            elseif pledges[zoneId] == true then control.text:SetText(control.text:GetText() .. ' |c00FF00(Completed)|r') end
 
-            achievementIcons = IsAchievementComplete(DungeonAchievements[id].clear) and '|t20:20:/esoui/art/cadwell/check.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t'
-            achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].hardMode) and '|t20:20:/esoui/art/treeicons/gamepad/achievement_categoryicon_veterandungeons.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
-            achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].speed) and '|t20:20:/esoui/art/mounts/gamepad/gp_ridingskill_speed.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
-            achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].noDeath) and '|t20:20:/esoui/art/deathrecap/deathrecap_killingblow_icon.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
-            achievementIcons = achievementIcons .. (IsAchievementComplete(DungeonAchievements[id].triple) and '|t20:20:/esoui/art/market/keyboard/esoplus_chalice_white2_64.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
+            achievementIcons = IsAchievementComplete(dungeonAchievements[id].clear) and '|t20:20:/esoui/art/cadwell/check.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t'
+            achievementIcons = achievementIcons .. (IsAchievementComplete(dungeonAchievements[id].hardMode) and '|t20:20:/esoui/art/treeicons/gamepad/achievement_categoryicon_veterandungeons.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
+            achievementIcons = achievementIcons .. (IsAchievementComplete(dungeonAchievements[id].speed) and '|t20:20:/esoui/art/mounts/gamepad/gp_ridingskill_speed.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
+            achievementIcons = achievementIcons .. (IsAchievementComplete(dungeonAchievements[id].noDeath) and '|t20:20:/esoui/art/deathrecap/deathrecap_killingblow_icon.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
+            achievementIcons = achievementIcons .. (IsAchievementComplete(dungeonAchievements[id].triple) and '|t20:20:/esoui/art/market/keyboard/esoplus_chalice_white2_64.dds|t' or '|t20:20:/esoui/art/icons/heraldrycrests_misc_blank_01.dds|t')
 
             PositionAchievementIcons('BearNecessities_AchievementIcons' .. c .. i, control, achievementIcons)
         end
@@ -395,9 +374,8 @@ local function CheckEquippedGearPiece(eventCode, bagId, slotIndex, isNewItem, it
     end
 end
 
--- Checks all worn gear if they're broken or drained
 local function CheckAllWornGear(eventCode)
-    for _, slotIndex in ipairs(EquipmentSlots) do
+    for _, slotIndex in ipairs(equipmentSlots) do
         CheckEquippedGearPiece(_, BAG_WORN, slotIndex)
     end
 end
@@ -439,14 +417,26 @@ local function UpdateGroupFrame(eventCode, ...)
     GROUP_FRAGMENT:Refresh()
 end
 
+-- Update attribute UI
 local function OnPowerUpdate(_, _, _, powerType, powerValue, powerMax, powerEffectiveMax)
-    if powerValue == nil then powerValue, powerMax, powerEffectiveMax = GetUnitPower('player') end
+    if powerValue == nil then powerValue, powerMax, powerEffectiveMax = GetUnitPower('player', powerType) end
 
-    local percentage = powerValue / powerMax * 100
+    local percentage = math.floor(powerValue / powerEffectiveMax * 100 + 0.5)
 
-    if powerType == POWERTYPE_HEALTH then BearNecessities_Health_Text:SetText(string.format('%d%%', percentage))
+    if powerType == POWERTYPE_HEALTH then
+        local shield = GetUnitAttributeVisualizerEffectInfo('player', ATTRIBUTE_VISUAL_POWER_SHIELDING, STAT_MITIGATION, ATTRIBUTE_HEALTH, POWERTYPE_HEALTH)
+
+        if shield then shield = math.floor(shield / powerEffectiveMax * 100 + 0.5)
+        else shield = 0 end
+
+        BearNecessities_Health_Text:SetText(string.format('%d%%', percentage))
+        BearNecessities_Health_Shield:SetText(string.format('%d%%', shield))
     elseif powerType == POWERTYPE_MAGICKA then BearNecessities_Magicka_Text:SetText(string.format('%d%%', percentage))
     elseif powerType == POWERTYPE_STAMINA then BearNecessities_Stamina_Text:SetText(string.format('%d%%', percentage)) end
+end
+
+local function OnShieldUpdate(_, unitTag)
+    OnPowerUpdate(_, _, _, POWERTYPE_HEALTH)
 end
 
 -- Checks whether the player is in a group and in a dungeon or trial
@@ -478,22 +468,25 @@ local function RegisterEvents()
 
     EM:RegisterForEvent(BN.name, EVENT_POWER_UPDATE, OnPowerUpdate)
     EM:AddFilterForEvent(BN.name, EVENT_POWER_UPDATE, REGISTER_FILTER_UNIT_TAG, 'player')
+    EM:RegisterForEvent(BN.name, EVENT_UNIT_ATTRIBUTE_VISUAL_ADDED, OnShieldUpdate)
+    EM:RegisterForEvent(BN.name, EVENT_UNIT_ATTRIBUTE_VISUAL_REMOVED, OnShieldUpdate)
+    EM:RegisterForEvent(BN.name, EVENT_UNIT_ATTRIBUTE_VISUAL_UPDATED, OnShieldUpdate)
 
     EM:RegisterForEvent(BN.name, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
 end
 
-local function RestorePosition()
+local function RestorePositions()
     BearNecessities_GroupFrame:ClearAnchors()
     BearNecessities_GroupFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.groupFrameLeft, BN.SV.groupFrameTop)
 
     BearNecessities_Health:ClearAnchors()
-    BearNecessities_Health:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.healthLeft, BN.SV.healthTop)
+    BearNecessities_Health:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT, BN.SV.healthRight, BN.SV.healthTop)
 
     BearNecessities_Magicka:ClearAnchors()
-    BearNecessities_Magicka:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.magickaLeft, BN.SV.magickaTop)
+    BearNecessities_Magicka:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT, BN.SV.magickaRight, BN.SV.magickaTop)
 
     BearNecessities_Stamina:ClearAnchors()
-    BearNecessities_Stamina:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.staminaLeft, BN.SV.staminaTop)
+    BearNecessities_Stamina:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT, BN.SV.staminaRight, BN.SV.staminaTop)
 
     BearNecessities_FoodReminder:ClearAnchors()
     BearNecessities_FoodReminder:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, BN.SV.foodLeft, BN.SV.foodTop)
@@ -505,17 +498,17 @@ function BN.GroupFrameOnMoveStop()
 end
 
 function BN.HealthOnMoveStop()
-    BN.SV.healthLeft = BearNecessities_Health:GetLeft()
+    BN.SV.healthRight = BearNecessities_Health:GetRight()
     BN.SV.healthTop = BearNecessities_Health:GetTop()
 end
 
 function BN.MagickaOnMoveStop()
-    BN.SV.magickaLeft = BearNecessities_Magicka:GetLeft()
+    BN.SV.magickaRight = BearNecessities_Magicka:GetRight()
     BN.SV.magickaTop = BearNecessities_Magicka:GetTop()
 end
 
 function BN.StaminaOnMoveStop()
-    BN.SV.staminaLeft = BearNecessities_Stamina:GetLeft()
+    BN.SV.staminaRight = BearNecessities_Stamina:GetRight()
     BN.SV.staminaTop = BearNecessities_Stamina:GetTop()
 end
 
@@ -525,14 +518,14 @@ function BN.FoodOnMoveStop()
 end
 
 local function Initialise()
-    BN.SV = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.Default)
+    BN.SV = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.defaults)
 
     if not BN.SV.isAccountWide then
-        BN.SV = ZO_SavedVars:NewCharacterIdSettings(BN.svName, BN.svVersion, nil, BN.Default)
+        BN.SV = ZO_SavedVars:NewCharacterIdSettings(BN.svName, BN.svVersion, nil, BN.defaults)
     end
 
     BOSS_BAR.RefreshBossHealthBar = function(self, smoothAnimate)
-        if BN.SV.doHideBossCompassHealthBar then return end
+        if BN.SV.doHideBossCompassHealthBar then return end -- Simple modification to hide Compass Health Bar
 
         local totalHealth = 0
         local totalMaxHealth = 0
@@ -569,9 +562,9 @@ local function Initialise()
     CreateSceneFragments()
     BuildPledgeButton()
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyShown', function() zo_callLater(DungeonFinder, 100) end)
-    ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function() Pledges = {} end)
+    ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function() pledges = {} end)
     RegisterEvents()
-    RestorePosition()
+    RestorePositions()
     BN.BuildMenu()
 
     EM:RegisterForUpdate(BN.name .. 'FoodReminder', 1000, function() FOOD_FRAGMENT:Refresh() end)

@@ -24,6 +24,9 @@
                 <Label name="$(parent)_Text" color="A62A2A" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPTEFT" />
                 </Label>
+                <Label name="$(parent)_Shield" color="FF9900" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="0%">
+                    <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)_Text" relativePoint="TOPRIGHT" offsetY="10" />
+                </Label>
             </Controls>
             <OnMoveStop>
                 BearNecessities.HealthOnMoveStop()

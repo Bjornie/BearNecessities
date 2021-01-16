@@ -1,7 +1,7 @@
 local BN = BearNecessities
 local WM = GetWindowManager()
 
-local QuestIds = {
+local questIds = {
     3993, -- Fungal 1
     4054, -- Spindle 1
     4107, -- Banished 1
@@ -46,7 +46,7 @@ local QuestIds = {
     6507, -- Castle Thorn
 }
 
-local MissingQuests = {}
+local missingQuests = {}
 
 function BN.BuildDungeonQuestButton()
     local function CheckQuests()
@@ -59,10 +59,10 @@ function BN.BuildDungeonQuestButton()
             local control = container:GetChild(i)
             local zoneId = control.node.data.zoneId
 
-            if not MissingQuests[zoneId] and control.check:GetState() == 0 then
+            if not missingQuests[zoneId] and control.check:GetState() == 0 then
                 control.check:SetState(BSTATE_PRESSED, true)
                 ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(control.node.data)
-            elseif not MissingQuests[zoneId] and control.check:GetState() == 1 then
+            elseif not missingQuests[zoneId] and control.check:GetState() == 1 then
                 control.check:SetState(BSTATE_NORMAL, true)
                 ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(control.node.data)
             end
@@ -90,17 +90,17 @@ local function DungeonFinder()
             local rawName = control.node.data.rawName
             local zoneId = control.node.data.zoneId
 
-            for key, value in ipairs(QuestIds) do
+            for key, value in ipairs(questIds) do
                 local zoneName, objectiveName, zoneIndex, poiIndex = GetCompletedQuestLocationInfo(value)
 
                 objectiveName = objectiveName:gsub('.*:%s*', '')
 
                 if value == 4641 then objectiveName = objectiveName .. 'I' end
 
-                if objectiveName == rawName then MissingQuests[zoneId] = true end
+                if objectiveName == rawName then missingQuests[zoneId] = true end
             end
         end
 end
 
 ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyShown', function() zo_callLater(DungeonFinder, 100) end)
-ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function() MissingQuests = {} end)
+ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function() missingQuests = {} end)

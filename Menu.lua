@@ -3,7 +3,7 @@ local EM = GetEventManager()
 local LAM = LibAddonMenu2
 
 function BN.BuildMenu()
-    local PanelData = {
+    local panelData = {
         type = 'panel',
         name = 'Bear Necessities',
         displayname = 'Bear Necessities',
@@ -13,7 +13,7 @@ function BN.BuildMenu()
         registerForDefaults = true,
     }
 
-    local OptionsTable = {
+    local optionsTable = {
         {
             type = 'header',
             name = '|cFFFACDGeneral|r',
@@ -24,7 +24,7 @@ function BN.BuildMenu()
             getFunc = function() return BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide'].isAccountWide end,
             setFunc = function(value) BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide'].isAccountWide = value end,
             requiresReload = true,
-            default = BN.Default.isAccountWide,
+            default = BN.defaults.isAccountWide,
         },
         {
             type = 'checkbox',
@@ -32,7 +32,7 @@ function BN.BuildMenu()
             getFunc = function() return BN.SV.isFoodEnabled end,
             setFunc = function(value) BN.SV.isFoodEnabled = value end,
             width = 'half',
-            default = BN.Default.isFoodEnabled,
+            default = BN.defaults.isFoodEnabled,
         },
         {
             type = 'slider',
@@ -43,14 +43,14 @@ function BN.BuildMenu()
             max = 60,
             width = 'half',
             disabled = function() return not BN.SV.isFoodEnabled end,
-            default = BN.Default.foodReminderThreshold,
+            default = BN.defaults.foodReminderThreshold,
         },
         {
             type = 'checkbox',
             name = 'Move All Currencies To Bank',
             getFunc = function() return BN.SV.moveCurrencies end,
             setFunc = function(value) BN.SV.moveCurrencies = value end,
-            default = BN.Default.moveCurrencies,
+            default = BN.defaults.moveCurrencies,
         },
         {
             type = 'submenu',
@@ -62,7 +62,7 @@ function BN.BuildMenu()
                     getFunc = function() return BN.SV.doHideBossCompassHealthBar end,
                     setFunc = function(value) BN.SV.doHideBossCompassHealthBar = value end,
                     width = 'half',
-                    default = BN.Default.doHideBossCompassHealthBar,
+                    default = BN.defaults.doHideBossCompassHealthBar,
                 },
                 {
                     type = 'checkbox',
@@ -74,7 +74,7 @@ function BN.BuildMenu()
                         else UNIT_FRAMES.staticFrames['reticleover']:SetHiddenForReason('BearNecessities', false) end
                     end,
                     width = 'half',
-                    default = BN.Default.doHideTargetHealthBar,
+                    default = BN.defaults.doHideTargetHealthBar,
                 },
                 {
                     type = 'checkbox',
@@ -93,7 +93,7 @@ function BN.BuildMenu()
                         end
                     end,
                     width = 'half',
-                    default = BN.Default.isExpBarHidden,
+                    default = BN.defaults.isExpBarHidden,
                 },
             },
         },
@@ -106,7 +106,7 @@ function BN.BuildMenu()
                     name = 'Simple Group UI',
                     getFunc = function() return BN.SV.isGroupUIEnabled end,
                     setFunc = function(value) BN.SV.isGroupUIEnabled = value end,
-                    default = BN.Default.isGroupUIEnabled,
+                    default = BN.defaults.isGroupUIEnabled,
                 },
                 {
                     type = 'checkbox',
@@ -124,7 +124,7 @@ function BN.BuildMenu()
                             LOOT_SCENE:RemoveFragment(PLAYER_ATTRIBUTE_BARS_FRAGMENT)
                         end
                     end,
-                    default = BN.Default.isAttributeUIEnabled,
+                    default = BN.defaults.isAttributeUIEnabled,
                 },
                 {
                     type = 'colorpicker',
@@ -135,7 +135,7 @@ function BN.BuildMenu()
                         BearNecessities_Health_Text:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.SV.isAttributeUIEnabled end,
-                    default = BN.Default.HealthColour,
+                    default = BN.defaults.HealthColour,
                 },
                 {
                     type = 'colorpicker',
@@ -146,7 +146,7 @@ function BN.BuildMenu()
                         BearNecessities_Magicka_Text:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.SV.isAttributeUIEnabled end,
-                    default = BN.Default.MagickaColour,
+                    default = BN.defaults.MagickaColour,
                 },
                 {
                     type = 'colorpicker',
@@ -157,12 +157,12 @@ function BN.BuildMenu()
                         BearNecessities_Stamina_Text:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.SV.isAttributeUIEnabled end,
-                    default = BN.Default.StaminaColour,
+                    default = BN.defaults.StaminaColour,
                 },
             },
         },
     }
 
-    LAM:RegisterAddonPanel(BN.name .. 'Options', PanelData)
-    LAM:RegisterOptionControls(BN.name .. 'Options', OptionsTable)
+    LAM:RegisterAddonPanel(BN.name .. 'Options', panelData)
+    LAM:RegisterOptionControls(BN.name .. 'Options', optionsTable)
 end
