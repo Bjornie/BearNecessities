@@ -27,12 +27,30 @@ function BN.BuildMenu()
             default = BN.defaults.isAccountWide,
         },
         {
+            type = 'button',
+            name = 'Unlock UI',
+            func = function(control)
+                BN.ToggleUI()
+
+                if BN.isMovable then
+                    control:SetText('Lock UI')
+                else control:SetText('Unlock UI') end
+            end,
+            width = 'half',
+        },
+        {
+            type = 'button',
+            name = 'Reset Positions',
+            func = function() BN.ResetUIPositions() end,
+            width = 'half',
+        },
+        {
             type = 'checkbox',
             name = 'Food Reminder',
-            getFunc = function() return BN.SV.isFoodEnabled end,
-            setFunc = function(value) BN.SV.isFoodEnabled = value end,
+            getFunc = function() return BN.SV.isFoodReminderEnabled end,
+            setFunc = function(value) BN.SV.isFoodReminderEnabled = value end,
             width = 'half',
-            default = BN.defaults.isFoodEnabled,
+            default = BN.defaults.isFoodReminderEnabled,
         },
         {
             type = 'slider',
@@ -42,15 +60,29 @@ function BN.BuildMenu()
             min = 1,
             max = 60,
             width = 'half',
-            disabled = function() return not BN.SV.isFoodEnabled end,
+            disabled = function() return not BN.SV.isFoodReminderEnabled end,
             default = BN.defaults.foodReminderThreshold,
         },
         {
             type = 'checkbox',
             name = 'Move All Currencies To Bank',
-            getFunc = function() return BN.SV.moveCurrencies end,
-            setFunc = function(value) BN.SV.moveCurrencies = value end,
-            default = BN.defaults.moveCurrencies,
+            getFunc = function() return BN.SV.doMoveCurrencies end,
+            setFunc = function(value) BN.SV.doMoveCurrencies = value end,
+            default = BN.defaults.doMoveCurrencies,
+        },
+        {
+            type = 'checkbox',
+            name = 'Minimize Chat In Combat',
+            getFunc = function() return BN.SV.doHideChatInCombat end,
+            setFunc = function(value) BN.SV.doHideChatInCombat = value end,
+            default = BN.defaults.doHideChatInCombat,
+        },
+        {
+            type = 'checkbox',
+            name = 'Auto Repair Gear & Auto Recharge Weapons',
+            getFunc = function() return BN.SV.doAutoCheckGear end,
+            setFunc = function(value) BN.SV.doAutoCheckGear = value end,
+            default = BN.defaults.doAutoCheckGear,
         },
         {
             type = 'submenu',
@@ -61,7 +93,6 @@ function BN.BuildMenu()
                     name = 'Hide Boss Compass Health Bar',
                     getFunc = function() return BN.SV.doHideBossCompassHealthBar end,
                     setFunc = function(value) BN.SV.doHideBossCompassHealthBar = value end,
-                    width = 'half',
                     default = BN.defaults.doHideBossCompassHealthBar,
                 },
                 {
@@ -73,7 +104,6 @@ function BN.BuildMenu()
                         if value then UNIT_FRAMES.staticFrames['reticleover']:SetHiddenForReason('BearNecessities', true)
                         else UNIT_FRAMES.staticFrames['reticleover']:SetHiddenForReason('BearNecessities', false) end
                     end,
-                    width = 'half',
                     default = BN.defaults.doHideTargetHealthBar,
                 },
                 {
@@ -92,7 +122,6 @@ function BN.BuildMenu()
                             LOOT_SCENE:AddFragment(PLAYER_PROGRESS_BAR_FRAGMENT)
                         end
                     end,
-                    width = 'half',
                     default = BN.defaults.isExpBarHidden,
                 },
             },
@@ -129,35 +158,35 @@ function BN.BuildMenu()
                 {
                     type = 'colorpicker',
                     name = 'Health Colour',
-                    getFunc = function() return unpack(BN.SV.HealthColour) end,
+                    getFunc = function() return unpack(BN.SV.healthColour) end,
                     setFunc = function(r, g, b, a)
-                        BN.SV.HealthColour = {r, g, b, a}
+                        BN.SV.healthColour = {r, g, b, a}
                         BearNecessities_Health_Text:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.SV.isAttributeUIEnabled end,
-                    default = BN.defaults.HealthColour,
+                    default = BN.defaults.healthColour,
                 },
                 {
                     type = 'colorpicker',
                     name = 'Magicka Colour',
-                    getFunc = function() return unpack(BN.SV.MagickaColour) end,
+                    getFunc = function() return unpack(BN.SV.magickaColour) end,
                     setFunc = function(r, g, b, a)
-                        BN.SV.MagickaColour = {r, g, b, a}
+                        BN.SV.magickaColour = {r, g, b, a}
                         BearNecessities_Magicka_Text:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.SV.isAttributeUIEnabled end,
-                    default = BN.defaults.MagickaColour,
+                    default = BN.defaults.magickaColour,
                 },
                 {
                     type = 'colorpicker',
                     name = 'Stamina Colour',
-                    getFunc = function() return unpack(BN.SV.StaminaColour) end,
+                    getFunc = function() return unpack(BN.SV.staminaColour) end,
                     setFunc = function(r, g, b, a)
-                        BN.SV.StaminaColour = {r, g, b, a}
+                        BN.SV.staminaColour = {r, g, b, a}
                         BearNecessities_Stamina_Text:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.SV.isAttributeUIEnabled end,
-                    default = BN.defaults.StaminaColour,
+                    default = BN.defaults.staminaColour,
                 },
             },
         },

@@ -2,7 +2,7 @@
     <Controls>
         <Label name="BearNecessities_CloudrestShade" color="960096" font="$(CHAT_FONT)|$(KB_24)|thick-outline" text="@AccountName" virtual="true" />
 
-        <TopLevelControl name="BearNecessities_GroupFrame" clampedToScreen="true" hidden="true" mouseEnabled="true" movable="true" resizeToFitDescendents="true">
+        <TopLevelControl name="BearNecessities_GroupFrame" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
             <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" offsetX="100" offsetY="100" />
             <Controls>
                 <Texture name="$(parent)_Texture" textureFile="esoui/art/lfg/gamepad/gp_lfg_icon_groupsize.dds">
@@ -18,14 +18,11 @@
             </OnMoveStop>
         </TopLevelControl>
 
-        <TopLevelControl name="BearNecessities_Health" clampedToScreen="true" hidden="true" mouseEnabled="true" movable="true" resizeToFitDescendents="true">
+        <TopLevelControl name="BearNecessities_Health" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
             <Anchor point="TOP" relativeTo="GuiRoot" relativePoint="BOTTOM" offsetY="-175" />
             <Controls>
-                <Label name="$(parent)_Text" color="A62A2A" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
+                <Label name="$(parent)_Value" color="A62A2A" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPTEFT" />
-                </Label>
-                <Label name="$(parent)_Shield" color="FF9900" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="0%">
-                    <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)_Text" relativePoint="TOPRIGHT" offsetY="10" />
                 </Label>
             </Controls>
             <OnMoveStop>
@@ -33,10 +30,19 @@
             </OnMoveStop>
         </TopLevelControl>
 
-        <TopLevelControl name="BearNecessities_Magicka" clampedToScreen="true" hidden="true" mouseEnabled="true" movable="true" resizeToFitDescendents="true">
+        <TopLevelControl name="BearNecessities_Shield" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
+            <Anchor point="BOTTOMRIGHT" relativeTo="BearNecessities_Health" relativePoint="TOPRIGHT" offsetY="10" />
+            <Controls>
+                <Label name="$(parent)_Value" color="FF9900" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="0%">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                </Label>
+            </Controls>
+        </TopLevelControl>
+
+        <TopLevelControl name="BearNecessities_Magicka" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
             <Anchor point="TOP" relativeTo="GuiRoot" relativePoint="BOTTOM" offsetX="-100" offsetY="-175" />
             <Controls>
-                <Label name="$(parent)_Text" color="2982C1" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
+                <Label name="$(parent)_Value" color="2982C1" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPTEFT" />
                 </Label>
             </Controls>
@@ -45,10 +51,10 @@
             </OnMoveStop>
         </TopLevelControl>
 
-        <TopLevelControl name="BearNecessities_Stamina" clampedToScreen="true" hidden="true" mouseEnabled="true" movable="true" resizeToFitDescendents="true">
+        <TopLevelControl name="BearNecessities_Stamina" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
             <Anchor point="TOP" relativeTo="GuiRoot" relativePoint="BOTTOM" offsetX="100" offsetY="-175" />
             <Controls>
-                <Label name="$(parent)_Text" color="008066" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
+                <Label name="$(parent)_Value" color="008066" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPTEFT" />
                 </Label>
             </Controls>
@@ -57,7 +63,16 @@
             </OnMoveStop>
         </TopLevelControl>
 
-        <TopLevelControl name="BearNecessities_FoodReminder" clampedToScreen="true" hidden="true" mouseEnabled="true" movable="true" resizeToFitDescendents="true">
+        <TopLevelControl name="BearNecessities_MountStamina" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
+            <Anchor point="BOTTOMRIGHT" relativeTo="BearNecessities_Stamina" relativePoint="TOPRIGHT" offsetY="10" />
+            <Controls>
+                <Label name="$(parent)_Value" color="008066" font="$(BOLD_FONT)|$(KB_32)|thick-outline" text="100%">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                </Label>
+            </Controls>
+        </TopLevelControl>
+
+        <TopLevelControl name="BearNecessities_FoodReminder" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
             <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" offsetX="0" offsetY="0" />
             <Controls>
                 <Label name="$(parent)_Text" color="FF0000" font="$(BOLD_FONT)|$(KB_32)|soft-shadow-thick" text="FOOD:">
