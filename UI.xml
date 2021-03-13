@@ -2,6 +2,21 @@
     <Controls>
         <Label name="BearNecessities_CloudrestShade" color="960096" font="$(CHAT_FONT)|$(KB_24)|thick-outline" text="@AccountName" virtual="true" />
 
+        <TopLevelControl name="BearNecessities_FoodReminder" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
+            <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" offsetX="0" offsetY="0" />
+            <Controls>
+                <Label name="$(parent)_Text" color="FF0000" font="$(BOLD_FONT)|$(KB_32)|soft-shadow-thick" text="FOOD:">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                </Label>
+                <Label name="$(parent)_Timer" color="FFFFFF" font="$(BOLD_FONT)|$(KB_32)|soft-shadow-thick" text="0">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)_Text" relativePoint="TOPRIGHT" offsetX="10" />
+                </Label>
+            </Controls>
+            <OnMoveStop>
+                BearNecessities.FoodOnMoveStop()
+            </OnMoveStop>
+        </TopLevelControl>
+
         <TopLevelControl name="BearNecessities_GroupFrame" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
             <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" offsetX="100" offsetY="100" />
             <Controls>
@@ -70,21 +85,6 @@
                     <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
                 </Label>
             </Controls>
-        </TopLevelControl>
-
-        <TopLevelControl name="BearNecessities_FoodReminder" clampedToScreen="true" hidden="true" mouseEnabled="false" movable="false" resizeToFitDescendents="true">
-            <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" offsetX="0" offsetY="0" />
-            <Controls>
-                <Label name="$(parent)_Text" color="FF0000" font="$(BOLD_FONT)|$(KB_32)|soft-shadow-thick" text="FOOD:">
-                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
-                </Label>
-                <Label name="$(parent)_Timer" color="FFFFFF" font="$(BOLD_FONT)|$(KB_32)|soft-shadow-thick" text="0">
-                    <Anchor point="TOPLEFT" relativeTo="$(parent)_Text" relativePoint="TOPRIGHT" offsetX="10" />
-                </Label>
-            </Controls>
-            <OnMoveStop>
-                BearNecessities.FoodOnMoveStop()
-            </OnMoveStop>
         </TopLevelControl>
     </Controls>
 </GuiXml>
