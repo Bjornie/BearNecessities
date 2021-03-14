@@ -231,12 +231,12 @@ end
 
 local function CreateSceneFragments()
     local function FoodFragmentCondition()
-        local result = false
+        local result
         local foodBuffRemaining = 0
 
-        if not sv.isFoodReminderEnabled or not isInRaidOrDungeon then result = false
+        if not (not BN.isUILocked or isInRaidOrDungeon) or not sv.isFoodReminderEnabled then result = false
         elseif not BN.isUILocked then -- UI is unlocked, show default
-            BearNecessities_FoodReminder_Timer:SetText('07:38')
+            BearNecessities_FoodReminder_Timer:SetText('7:38')
             result = true
         else
             local finish, abilityId
@@ -263,9 +263,9 @@ local function CreateSceneFragments()
     end
 
     local function GroupFragmentCondition()
-        local result = false
+        local result
 
-        if not sv.isGroupUIEnabled or not IsUnitGrouped('player') then result = false
+        if not (not BN.isUILocked or IsUnitGrouped('player')) or not sv.isGroupUIEnabled then result = false
         elseif not BN.isUILocked then -- UI is unlocked, show default
             BearNecessities_GroupFrame_Label:SetText('7/12')
             result = true
@@ -294,15 +294,33 @@ local function CreateSceneFragments()
     end
 
     local function AttributeFragmentCondition()
-        return sv.isAttributeUIEnabled
+        local result
+
+        -- return sv.isAttributeUIEnabled
+        if not sv.isAttributeUIEnabled then result = false
+        else result = true end
+
+        return result
     end
 
     local function ShieldFragmentCondition()
-        return sv.isAttributeUIEnabled and BearNecessities_Shield_Value:GetText() ~= '0%'
+        local result
+
+        -- return sv.isAttributeUIEnabled and BearNecessities_Shield_Value:GetText() ~= '0%'
+        if not sv.isAttributeUIEnabled or BearNecessities_Shield_Value:GetText() == '0%' then result = false
+        else result = true end
+
+        return result
     end
 
     local function MountStaminaFragmentCondition()
-        return sv.isAttributeUIEnabled and IsMounted()
+        local result
+
+        -- return sv.isAttributeUIEnabled and IsMounted()
+        if not sv.isAttributeUIEnabled or not IsMounted() then result = false
+        else result = true end
+
+        return result
     end
 
     foodFragment = AddSimpleFragment(BearNecessities_FoodReminder, FoodFragmentCondition)
@@ -838,48 +856,38 @@ function BN.AddFragment(fragment)
 end
 
 function BN.ToggleUI()
-    BN.isMovable = not BN.isMovable
+    BN.isUILocked = not BN.isUILocked
 
-    if BN.isMovable then
+    if not BN.isUILocked then
         BearNecessities_FoodReminder:SetMouseEnabled(true)
         BearNecessities_FoodReminder:SetMovable(true)
-        BearNecessities_FoodReminder:SetHidden(false)
 
         BearNecessities_GroupFrame:SetMouseEnabled(true)
         BearNecessities_GroupFrame:SetMovable(true)
-        BearNecessities_GroupFrame:SetHidden(false)
 
         BearNecessities_Health:SetMouseEnabled(true)
         BearNecessities_Health:SetMovable(true)
-        BearNecessities_Health:SetHidden(false)
 
         BearNecessities_Magicka:SetMouseEnabled(true)
         BearNecessities_Magicka:SetMovable(true)
-        BearNecessities_Magicka:SetHidden(false)
 
         BearNecessities_Stamina:SetMouseEnabled(true)
         BearNecessities_Stamina:SetMovable(true)
-        BearNecessities_Stamina:SetHidden(false)
     else
         BearNecessities_FoodReminder:SetMouseEnabled(false)
         BearNecessities_FoodReminder:SetMovable(false)
-        BearNecessities_FoodReminder:SetHidden(true)
 
         BearNecessities_GroupFrame:SetMouseEnabled(false)
         BearNecessities_GroupFrame:SetMovable(false)
-        BearNecessities_GroupFrame:SetHidden(true)
 
         BearNecessities_Health:SetMouseEnabled(false)
         BearNecessities_Health:SetMovable(false)
-        BearNecessities_Health:SetHidden(true)
 
         BearNecessities_Magicka:SetMouseEnabled(false)
         BearNecessities_Magicka:SetMovable(false)
-        BearNecessities_Magicka:SetHidden(true)
 
         BearNecessities_Stamina:SetMouseEnabled(false)
         BearNecessities_Stamina:SetMovable(false)
-        BearNecessities_Stamina:SetHidden(true)
     end
 end
 

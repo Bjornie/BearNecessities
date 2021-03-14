@@ -32,7 +32,7 @@ function BN.BuildMenu()
             func = function(control)
                 BN.ToggleUI()
 
-                if BN.isMovable then control:SetText('Lock UI')
+                if not BN.isUILocked then control:SetText('Lock UI')
                 else control:SetText('Unlock UI') end
             end,
             width = 'half',
