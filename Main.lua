@@ -52,6 +52,7 @@ local equipmentSlots = {
 
 local foodList = {
     [61255] = 'bistat', -- Increase Max Health & Stamina
+    [61260] = 'unistat', -- Increase Max Magicka
     [84720] = 'unique', -- Ghastly Eye Bowl
     [86673] = 'unique', -- Lava Foot Soup-And-Saltrice
     [107748] = 'unique', -- Artaeum Pickled Fish Bowl
@@ -583,7 +584,7 @@ local function OnPlayerActivated()
         window.buffer:SetLineFade(0, 0)
     end
 
-    SetCrownCrateNPCVisible(isGroupHidden)
+    OnBossChange()
     CheckAllWornGear()
     UpdateGroupFrame()
     IsPlayerInRaidOrDungeon()
@@ -764,6 +765,33 @@ end
 local function OnDungeonFinderHidden()
     pledges = {}
     completedQuests = {}
+end
+
+local function OnGroupListShown(self, control, data)
+    if ZO_ShouldPreferUserId() then control.characterNameLabel:SetText(zo_strformat(SI_GROUP_LIST_PANEL_CHARACTER_NAME, data.index, data.displayName)) end
+end
+
+local function OnLeaderboardListShown(self, control, data)
+    if ZO_ShouldPreferUserId() then control.nameLabel:SetText(data.displayName) end
+end
+
+local function OnSocialListMouseEnter(self, control)
+    if ZO_ShouldPreferUserId() then
+        local row = control:GetParent()
+        local data = ZO_ScrollList_GetData(row)
+
+        if data.characterName then
+            InitializeTooltip(InformationTooltip)
+            local textWidth = control:GetTextDimensions()
+            InformationTooltip:ClearAnchors()
+            InformationTooltip:SetAnchor(BOTTOM, control, TOPLEFT, textWidth * 0.5, 0)
+            SetTooltipText(InformationTooltip, data.characterName)
+        end
+
+        return true
+    end
+
+    return false
 end
 
 local function RefreshFoodReminder()
@@ -961,6 +989,9 @@ local function Initialise()
     ZO_PostHook('ZO_ChatTextEntry_FocusLost', OnChatFocusLost)
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyShown', OnDungeonFinderShownDelayed)
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', OnDungeonFinderHidden)
+    ZO_PostHook(GROUP_LIST, 'SetupGroupEntry', OnGroupListShown)
+    ZO_PostHook(ZO_LeaderboardsManager_Shared, 'SetupLeaderboardPlayerEntry', OnLeaderboardListShown)
+    ZO_PreHook(ZO_SocialListKeyboard, 'CharacterName_OnMouseEnter', OnSocialListMouseEnter)
 
     EM:RegisterForUpdate(BN.name .. 'FoodReminder', 1000, RefreshFoodReminder)
 

@@ -1,5 +1,4 @@
 local BN = BearNecessities
-local EM = GetEventManager()
 local LAM = LibAddonMenu2
 
 function BN.BuildMenu()

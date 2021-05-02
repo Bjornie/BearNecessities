@@ -1,12 +1,11 @@
 ## Title: Bear Necessities
 ## Version: 1.5.0
-## APIVersion: 100034
+## APIVersion: 100035
 ## Author: |c00BFFFBjørn|r
 ## SavedVariables: BearNecessitiesSV
 ## DependsOn: LibAddonMenu-2.0
 
+Bindings.xml
 Main.lua
 Menu.lua
 UI.xml
-Bindings.xml
-Temp.lua
