@@ -14,6 +14,24 @@ function BN.BuildMenu()
 
     local optionsTable = {
         {
+            type = 'submenu',
+            name = 'Information',
+            controls = {
+                {
+                    type = 'description',
+                    text = 'This addon has the following chat commands:\n- /house: port inside your primary residence\n- /m: summon merchant assistant\n- /b: summon banker assistant\n- /s: summon smuggler assistant\n- /hg: hide group members (works for necros as well)'
+                },
+                {
+                    type = 'description',
+                    text = 'Furthermore this addon does some things that there are no settings for. They are the following:\nBase game settings > Interface > Display Name now also affects group list and leaderboards. So if the setting is set to \'Prefer UserID\' group list and leaderboards menu will show account name instead of character name. Hovering your curser over an acocunt name will show the character name.',
+                },
+                {
+                    type = 'description',
+                    text = 'Dungeon Finder "tags" pledges by changing dungeon name colour and shows icons next to dungeons representing achievements completed (|t20:20:/esoui/art/cadwell/check.dds|t is dungeon completed, |t20:20:/esoui/art/treeicons/gamepad/achievement_categoryicon_veterandungeons.dds|t is hard mode, |t20:20:/esoui/art/mounts/gamepad/gp_ridingskill_speed.dds|t is speed run, |t20:20:/esoui/art/deathrecap/deathrecap_killingblow_icon.dds|t is no death, and |t20:20:/esoui/art/market/keyboard/esoplus_chalice_white2_64.dds|t is triple achievement). Lastly there are two new buttons in the bottom left of the Dungeon Finder menu: \'Check Quests\' and \'Check Pledges\'. \'Check Quests\' will mark every dungeon (on normal difficulty) that you haven\'t completed the quest for. Reason? Dungeon quests award one skill point, so this is an easy way to farm skill points. \'Check Pledges\' will mark every pledge you currently have.',
+                },
+            },
+        },
+        {
             type = 'header',
             name = '|cFFFACDGeneral|r',
         },
@@ -91,6 +109,15 @@ function BN.BuildMenu()
             default = BN.defaults.isChatAccountWide,
         },
         {
+            type = 'checkbox',
+            name = 'Account-Wide Game Settings',
+            getFunc = function() return BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide'].isGameSettingsAccountWide end,
+            setFunc = function(value) BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide'].isGameSettingsAccountWide = value end,
+            tooltip = 'Makes Base Game Settings Account-Wide',
+            warning = 'This setting ignores \'Account-Wide Settings\'! Your current game settings will be copied and applied to every character you log in to.',
+            default = BN.defaults.isGameSettingsAccountWide,
+        },
+        {
             type = 'submenu',
             name = 'Base Game UI',
             controls = {
@@ -153,10 +180,21 @@ function BN.BuildMenu()
                     getFunc = function() return unpack(BN.sv.healthColour) end,
                     setFunc = function(r, g, b, a)
                         BN.sv.healthColour = {r, g, b, a}
-                        BearNecessities_Health_Text:SetColor(r, g, b, a)
+                        BearNecessities_Health_Value:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.sv.isAttributeUIEnabled end,
                     default = BN.defaults.healthColour,
+                },
+                {
+                    type = 'colorpicker',
+                    name = 'Shield Colour',
+                    getFunc = function() return unpack(BN.sv.shieldColour) end,
+                    setFunc = function(r, g, b, a)
+                        BN.sv.shieldColour = {r, g, b, a}
+                        BearNecessities_Shield_Value:SetColor(r, g, b, a)
+                    end,
+                    disabled = function() return not BN.sv.isAttributeUIEnabled end,
+                    default = BN.defaults.shieldColour,
                 },
                 {
                     type = 'colorpicker',
@@ -164,7 +202,7 @@ function BN.BuildMenu()
                     getFunc = function() return unpack(BN.sv.magickaColour) end,
                     setFunc = function(r, g, b, a)
                         BN.sv.magickaColour = {r, g, b, a}
-                        BearNecessities_Magicka_Text:SetColor(r, g, b, a)
+                        BearNecessities_Magicka_Value:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.sv.isAttributeUIEnabled end,
                     default = BN.defaults.magickaColour,
@@ -175,7 +213,8 @@ function BN.BuildMenu()
                     getFunc = function() return unpack(BN.sv.staminaColour) end,
                     setFunc = function(r, g, b, a)
                         BN.sv.staminaColour = {r, g, b, a}
-                        BearNecessities_Stamina_Text:SetColor(r, g, b, a)
+                        BearNecessities_Stamina_Value:SetColor(r, g, b, a)
+                        BearNecessities_MountStamina_Value:SetColor(r, g, b, a)
                     end,
                     disabled = function() return not BN.sv.isAttributeUIEnabled end,
                     default = BN.defaults.staminaColour,

@@ -1,6 +1,18 @@
 <Bindings>
     <Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
         <Category name="|c00BFFFBear Necessities|r">
+            <Action name="BN_SUMMON_MERCHANT">
+                <Down>BearNecessities.SummonMerchant()</Down>
+            </Action>
+            <Action name="BN_SUMMON_BANKER">
+                <Down>BearNecessities.SummonBanker()</Down>
+            </Action>
+            <Action name="BN_SUMMON_SMUGLER">
+                <Down>BearNecessities.SummonSmuggler()</Down>
+            </Action>
+            <Action name="BN_HIDEGROUP">
+                <Down>BearNecessities.HideGroup()</Down>
+            </Action>
             <Action name="BN_SWITCH_TAB_NEXT">
                 <Down>BearNecessities.SwitchToNextTab()</Down>
             </Action>
