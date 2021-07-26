@@ -589,7 +589,7 @@ function BN.SummonSmuggler()
     if IsCollectibleUnlocked(300) then UseCollectible(300) end -- Pirharri
 end
 
-local function OnAddonLoaded(_, addonName)
+local function OnAddonLoaded(eventCode, addonName)
     if addonName == BN.name then
         EM:UnregisterForEvent(BN.name, EVENT_ADD_ON_LOADED)
 
