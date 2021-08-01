@@ -59,11 +59,13 @@ local function SetGameSettings()
 end
 
 -- Called on EVENT_PLAYER_ACTIVATED
-local function SetSettings()
+local function SetSettings(initial)
     chatContainer = CHAT_SYSTEM.primaryContainer
 
-    SetChatWindowSettings()
-    SetGameSettings()
+    if initial then
+        SetChatWindowSettings()
+        SetGameSettings()
+    end
 end
 
 -- Saves chat window settings on Reloadui, Logout, and Quit

@@ -1,6 +1,6 @@
 BearNecessities = {
     name = 'BearNecessities',
-    version = '2.0.0',
+    version = '2.0.1',
     svName = 'BearNecessitiesSV',
     svVersion = 2,
     isUILocked = true,
@@ -320,8 +320,8 @@ local function OnCombatStateChanged(_, inCombat)
     end
 end
 
-local function OnPlayerActivated()
-    BN.CallbackManager:FireCallbacks('PlayerActivated')
+local function OnPlayerActivated(eventCode, initial)
+    BN.CallbackManager:FireCallbacks('PlayerActivated', initial)
 
     chatContainer = CHAT_SYSTEM.primaryContainer
     systemWindow = chatContainer.windows[1]
