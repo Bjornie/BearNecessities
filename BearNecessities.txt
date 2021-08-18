@@ -1,9 +1,10 @@
 ## Title: Bear Necessities
-## Version: 2.0.1
-## APIVersion: 100035
 ## Author: |c00BFFFBjørn|r
+## APIVersion: 100035
+## Version: 2.0.1
 ## SavedVariables: BearNecessitiesSV
 ## DependsOn: LibAddonMenu-2.0
+## OptionalDependsOn: LootLog
 
 Strings.lua
 Main.lua

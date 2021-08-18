@@ -148,9 +148,7 @@ local function MarkDungeonForPledge(control, data, pledgeActivityType)
 end
 
 local activityType, achievementIcons
--- Called on each dungeon in Dungeon Finder, checks:
--- • If it's a pledge
--- • If dungeon quest is completed
+-- Called on each dungeon in Dungeon Finder and checks if it's a pledge and if the relative quest is completed
 local function OnTreeEntrySetup(node, control, data, open)
     -- LFG_ACTIVITY_DUNGEON = 2
     -- LFG_ACTIVITY_MASTER_DUNGEON = 3

@@ -27,7 +27,11 @@ function BN.BuildMenu()
                 },
                 {
                     type = 'description',
-                    text = 'Dungeon Finder "tags" pledges by changing dungeon name colour and shows icons next to dungeons representing achievements completed (|t20:20:/esoui/art/cadwell/check.dds|t is dungeon completed, |t20:20:/esoui/art/treeicons/gamepad/achievement_categoryicon_veterandungeons.dds|t is hard mode, |t20:20:/esoui/art/mounts/gamepad/gp_ridingskill_speed.dds|t is speed run, |t20:20:/esoui/art/deathrecap/deathrecap_killingblow_icon.dds|t is no death, and |t20:20:/esoui/art/market/keyboard/esoplus_chalice_white2_64.dds|t is triple achievement). Lastly there are two new buttons in the bottom left of the Dungeon Finder menu: \'Check Quests\' and \'Check Pledges\'. \'Check Quests\' will mark every dungeon (on normal difficulty) that you haven\'t completed the quest for. Reason? Dungeon quests award one skill point, so this is an easy way to farm skill points. \'Check Pledges\' will mark every pledge you currently have.',
+                    text = 'Changes colour of pledges in Dungeon Finder and adds two new buttons in the bottom left of the Dungeon Finder menu: \'Check Quests\' and \'Check Pledges\'. \'Check Quests\' will mark every dungeon (on normal difficulty) that you haven\'t completed the quest for. Reason? Dungeon quests award one skill point, so this is an easy way to farm skill points. \'Check Pledges\' will mark every pledge you currently have.',
+                },
+                {
+                    type = 'description',
+                    text = 'If LootLog is installed and enabled, and you have a chat tab named \'Loot Log\' LootLog will only send chat messages in this chat tab instead of all chat tabs.',
                 },
             },
         },

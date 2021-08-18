@@ -79,6 +79,7 @@ local isTyping = false
 -- Chat variables
 local activeWindow = 1
 local chatContainer, systemWindow
+local lootLog, lootLogWindow
 
 -- UI fragments
 local foodFragment, groupFragment, healthFragment, shieldFragment, magickaFragment, staminaFragment, mountStaminaFragment
@@ -326,9 +327,11 @@ local function OnPlayerActivated(eventCode, initial)
     chatContainer = CHAT_SYSTEM.primaryContainer
     systemWindow = chatContainer.windows[1]
 
-    for _, window in ipairs(chatContainer.windows) do
+    for index, window in ipairs(chatContainer.windows) do
         window.buffer:SetMaxHistoryLines(1000)
         window.buffer:SetLineFade(0, 0)
+
+        if chatContainer:GetTabName(index):find('Loot Log', nil, true) then lootLogWindow = window end
     end
 
     if GetCurrentZoneDungeonDifficulty() ~= 0 then checkFood = true
@@ -384,6 +387,12 @@ local function RestorePositions()
 
     BearNecessities_Stamina:ClearAnchors()
     BearNecessities_Stamina:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT, sv.staminaRight, sv.staminaTop)
+end
+
+local function InterceptLootLogMessage(text)
+	lootLogWindow.buffer:AddMessage(string.format("|H0:lootlog|h[%s]|h %s", lootLog.title, text), 1, 1, 0)
+
+    return true
 end
 
 -- Called before BOSS_BAR:RefreshBossHealthBar, which is only executed if
@@ -615,6 +624,11 @@ local function OnAddonLoaded(eventCode, addonName)
         BN.GroupMenuInitialise()
 
         BN.BuildMenu()
+
+        if LootLog then
+            lootLog = LootLog
+            ZO_PreHook(lootLog, 'Msg', InterceptLootLogMessage)
+        end
 
         ZO_PreHook(BOSS_BAR, 'RefreshBossHealthBar', InterceptBossHealthBar)
         ZO_PostHook('StartChatInput', OnChatFocused)
