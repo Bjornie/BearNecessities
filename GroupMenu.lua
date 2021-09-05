@@ -54,6 +54,8 @@ local questIds = {
     6507, -- Castle Thorn
     6576, -- Black Drake Villa
     6578, -- The Cauldron
+    6683, -- Red Petal Bastion
+    6685, -- The Dread Cellar
 }
 
 local pledges = {}

@@ -1,6 +1,6 @@
 BearNecessities = {
     name = 'BearNecessities',
-    version = '2.1.2',
+    version = '2.1.3',
     svName = 'BearNecessitiesSV',
     svVersion = 2,
     isUILocked = true,
