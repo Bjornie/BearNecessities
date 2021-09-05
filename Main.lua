@@ -1,6 +1,6 @@
 BearNecessities = {
     name = 'BearNecessities',
-    version = '2.0.1',
+    version = '2.1.1',
     svName = 'BearNecessitiesSV',
     svVersion = 2,
     isUILocked = true,
@@ -305,14 +305,14 @@ end
 local changedHiddenGroup = false
 local function OnCombatStateChanged(_, inCombat)
     if inCombat then
-        if sv.doHideChatInCombat and not isTyping then CHAT_SYSTEM:Minimize() end
+        if sv.doHideChatInCombat and not isTyping then KEYBOARD_CHAT_SYSTEM:Minimize() end
         if isNecro and isGroupHidden and DoesUnitExist('boss1') then
             changedHiddenGroup = true
             isGroupHidden = false
             SetCrownCrateNPCVisible(false)
         end
     else
-        if sv.doHideChatInCombat then CHAT_SYSTEM:Maximize() end
+        if sv.doHideChatInCombat then KEYBOARD_CHAT_SYSTEM:Maximize() end
         if changedHiddenGroup then
             changedHiddenGroup = false
             isGroupHidden = true
@@ -322,9 +322,13 @@ local function OnCombatStateChanged(_, inCombat)
 end
 
 local function OnPlayerActivated(eventCode, initial)
-    BN.CallbackManager:FireCallbacks('PlayerActivated', initial)
+    chatContainer = KEYBOARD_CHAT_SYSTEM.primaryContainer
 
-    chatContainer = CHAT_SYSTEM.primaryContainer
+    if not chatContainer then
+        zo_callLater(function() OnPlayerActivated(eventCode, initial) end, 50)
+        return
+    end
+
     systemWindow = chatContainer.windows[1]
 
     for index, window in ipairs(chatContainer.windows) do
@@ -342,6 +346,8 @@ local function OnPlayerActivated(eventCode, initial)
     UpdateGroupFrame()
 
     ZO_PreHook(chatContainer, 'HandleTabClick', function(_, tab) activeWindow = tab.index end)
+
+    BN.CallbackManager:FireCallbacks('PlayerActivated', initial)
 end
 
 local function RegisterEvents()
@@ -614,7 +620,7 @@ local function OnAddonLoaded(eventCode, addonName)
         if sv.isGroupUIEnabled then UNIT_FRAMES:DisableGroupAndRaidFrames() end
 
         -- Must be changed before chat is initialised
-        CHAT_SYSTEM.maxContainerWidth, CHAT_SYSTEM.maxContainerHeight = GuiRoot:GetDimensions()
+        KEYBOARD_CHAT_SYSTEM.maxContainerWidth, KEYBOARD_CHAT_SYSTEM.maxContainerHeight = GuiRoot:GetDimensions()
 
         CreateSceneFragments()
         RegisterEvents()

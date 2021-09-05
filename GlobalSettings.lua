@@ -19,7 +19,7 @@ local function SetChatWindowSettings()
         CW:SetAnchor(chatContainer.settings.point, GuiRoot, chatContainer.settings.relPoint, chatContainer.settings.x, chatContainer.settings.y)
         CW:SetDimensions(chatContainer.settings.width, chatContainer.settings.height)
 
-        CHAT_SYSTEM:SetFontSize(sv.chatSettings.fontSize)
+        KEYBOARD_CHAT_SYSTEM:SetFontSize(sv.chatSettings.fontSize)
         SetChatFontSize(sv.chatSettings.fontSize)
 
         for tabIndex in ipairs(sv.chatSettings.tabs) do
@@ -60,7 +60,7 @@ end
 
 -- Called on EVENT_PLAYER_ACTIVATED
 local function SetSettings(initial)
-    chatContainer = CHAT_SYSTEM.primaryContainer
+    chatContainer = KEYBOARD_CHAT_SYSTEM.primaryContainer
 
     if initial then
         SetChatWindowSettings()
