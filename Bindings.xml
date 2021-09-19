@@ -10,9 +10,6 @@
             <Action name="BN_SUMMON_SMUGLER">
                 <Down>BearNecessities.SummonSmuggler()</Down>
             </Action>
-            <Action name="BN_HIDEGROUP">
-                <Down>BearNecessities.HideGroup()</Down>
-            </Action>
             <Action name="BN_SWITCH_TAB_NEXT">
                 <Down>BearNecessities.SwitchToNextTab()</Down>
             </Action>

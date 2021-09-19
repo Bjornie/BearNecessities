@@ -131,7 +131,7 @@ local function GetGameSettings()
     end
 end
 
--- Called before reloading ui or logging off
+-- Called on EVENT_PLAYER_DEACTIVATED
 local function GetSettings()
     GetChatWindowSettings()
     GetGameSettings()
@@ -141,10 +141,5 @@ function BN.GlobalSettingsInitialise()
     sv = BearNecessitiesSV.Default[GetDisplayName()]['$AccountWide']
 
     BN.CallbackManager:RegisterCallback('PlayerActivated', SetSettings)
-
-    -- Not exactly a clean way/time to get settings but working with settings is a pain and this is easy
-    -- NOTE: If error occurs in GetSettings user is unable to call any of the below functions successfully. Must find an alternative method
-    ZO_PreHook('ReloadUI', GetSettings)
-    ZO_PreHook('Logout', GetSettings)
-    ZO_PreHook('Quit', GetSettings)
+    BN.CallbackManager:RegisterCallback('PlayerDeactivated', GetSettings)
 end

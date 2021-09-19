@@ -133,13 +133,12 @@ local function SetObjectPoolCustomFactoryBehavior()
     treeEntry.objectPool:SetCustomFactoryBehavior(CustomBehavior)
 end
 
-local rawName, pledgeName
 -- Flag pledges with control attribute and controls with pledge attribute
 local function MarkDungeonForPledge(control, data, pledgeActivityType)
-    rawName = strformat('%s', data.rawName:lower():gsub('%si$', ' 1'):gsub('%sii$', ' 2'))
+    local rawName = strformat('%s', data.rawName:lower():gsub('%si$', ' 1'):gsub('%sii$', ' 2'))
 
     for i = 1, #pledges do
-        pledgeName = pledges[i].pledgeName
+        local pledgeName = pledges[i].pledgeName
         if rawName == pledgeName or rawName:match(strformat('.*:%s.*', pledgeName:gsub('%s+', '.*'))) or pledgeName:match(strformat('.*%s', rawName:gsub('%s+', '.*'))) then
             control.pledge = pledgeActivityType -- Used in GetTextColour
             pledges[i].control = control -- Used in CheckPledges
@@ -149,12 +148,11 @@ local function MarkDungeonForPledge(control, data, pledgeActivityType)
     end
 end
 
-local activityType, achievementIcons
 -- Called on each dungeon in Dungeon Finder and checks if it's a pledge and if the relative quest is completed
 local function OnTreeEntrySetup(node, control, data, open)
     -- LFG_ACTIVITY_DUNGEON = 2
     -- LFG_ACTIVITY_MASTER_DUNGEON = 3
-    activityType = data:GetActivityType()
+    local activityType = data:GetActivityType()
     control.pledge = nil
 
     if #pledges ~= 0 then
@@ -168,13 +166,12 @@ local function OnTreeEntrySetup(node, control, data, open)
     control.text:RefreshTextColor()
 end
 
-local questName, completed, questType, formattedName
 -- Get pledges in player's quest journal
 local function GetPledges()
     for i = 1, GetNumJournalQuests() do
-        questName, _, _, _, _, completed, _, _, _, questType = GetJournalQuestInfo(i)
+        local questName, _, _, _, _, completed, _, _, _, questType = GetJournalQuestInfo(i)
         if questType == QUEST_TYPE_UNDAUNTED_PLEDGE and completed == false then
-            formattedName = strformat('%s', questName:lower():gsub('.*:%s*', ''):gsub('%si$', ' 1'):gsub('%sii$', ' 2'))
+            local formattedName = strformat('%s', questName:lower():gsub('.*:%s*', ''):gsub('%si$', ' 1'):gsub('%sii$', ' 2'))
             tblinsert(pledges, {pledgeName = formattedName})
         end
 
@@ -182,10 +179,9 @@ local function GetPledges()
     end
 end
 
-local objectiveName
 local function GetCompletedQuests()
     for index, value in ipairs(questIds) do
-        _, objectiveName = GetCompletedQuestLocationInfo(value)
+        local _, objectiveName = GetCompletedQuestLocationInfo(value)
         objectiveName = objectiveName:gsub('.*:%s*', '')
         if value == 4641 then objectiveName = objectiveName .. 'I' end
 

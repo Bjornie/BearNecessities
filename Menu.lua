@@ -7,7 +7,7 @@ function BN.BuildMenu()
         name = 'Bear Necessities',
         displayname = 'Bear Necessities',
         author = '|c00BFFFBjørn|r',
-        version = BN.version,
+        version = '2.2.0',
         registerForRefresh = true,
         registerForDefaults = true,
     }
@@ -19,11 +19,11 @@ function BN.BuildMenu()
             controls = {
                 {
                     type = 'description',
-                    text = 'This addon has the following chat commands:\n- /house: port inside your primary residence\n- /m: summon merchant assistant\n- /b: summon banker assistant\n- /s: summon smuggler assistant\n- /hg: hide group members (works for necros as well)'
+                    text = 'This addon has the following chat commands:\n- /house: port inside your primary residence\n- /m: summon merchant assistant\n- /b: summon banker assistant\n- /s: summon smuggler assistant'
                 },
                 {
                     type = 'description',
-                    text = 'Furthermore this addon does some things that there are no settings for. They are the following:\nBase game settings > Interface > Display Name now also affects group list and leaderboards. So if the setting is set to \'Prefer UserID\' group list and leaderboards menu will show account name instead of character name. Hovering your curser over an acocunt name will show the character name.',
+                    text = 'Furthermore this addon does some things that there are no settings for. They are the following:\nBase game settings > Interface > Display Name now also affects group list and leaderboards. So if the setting is set to \'Prefer UserID\' group list and leaderboards menu will show account name instead of character name. Hovering your curser over an account name will show the character name.',
                 },
                 {
                     type = 'description',
@@ -120,6 +120,14 @@ function BN.BuildMenu()
             tooltip = 'Makes Base Game Settings Account-Wide',
             warning = 'This setting ignores \'Account-Wide Settings\'! Your current game settings will be copied and applied to every character you log in to.',
             default = BN.defaults.isGameSettingsAccountWide,
+        },
+        {
+            type = 'checkbox',
+            name = 'Auto Fill Dialog Text Input',
+            getFunc = function() return BN.sv.doAutofillDialogTextInput end,
+            setFunc = function(value) BN.sv.doAutofillDialogTextInput = value end,
+            tooltip = 'Automatically fills in \'CONFIRM\', \'DESTROY\', etc. in confirmation dialogs',
+            default = BN.defaults.doAutofillDialogTextInput,
         },
         {
             type = 'submenu',

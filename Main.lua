@@ -1,6 +1,5 @@
 BearNecessities = {
     name = 'BearNecessities',
-    version = '2.1.3',
     svName = 'BearNecessitiesSV',
     svVersion = 2,
     isUILocked = true,
@@ -33,6 +32,7 @@ BearNecessities = {
         doAutoCheckGear = false,
         isChatAccountWide = false,
         isGameSettingsAccountWide = false,
+        doAutofillDialogTextInput = false,
 
         chatSettings = {},
         gameSettings = {},
@@ -69,14 +69,11 @@ local EM = GetEventManager()
 local lootLog = LootLog
 local lootLogWindow
 
-local sv -- local saved variables
-
 -- Localised functions are faster
 local strformat = string.format
 
-local checkFood = false
-local isGroupHidden = false
-local isNecro = GetUnitClassId('player') == 5
+local checkFood = false -- Only track food buff when in arenas, dungeons or trials
+local isPlayerInCombat = false
 local isTyping = false
 
 -- Chat variables
@@ -86,9 +83,11 @@ local chatContainer, systemWindow
 -- UI fragments
 local foodFragment, groupFragment, healthFragment, shieldFragment, magickaFragment, staminaFragment, mountStaminaFragment
 
-local fragment
+-- storage of dialogs for settings
+local destroyDialog, improveDialog, enchantDialog, retraitDialog
+
 local function AddSimpleFragment(control, condition)
-    fragment = ZO_SimpleSceneFragment:New(control)
+    local fragment = ZO_SimpleSceneFragment:New(control)
 
     if condition then fragment:SetConditional(condition) end
 
@@ -99,18 +98,18 @@ local function AddSimpleFragment(control, condition)
 end
 
 local function CreateSceneFragments()
-    local foodBuffRemaining = 0
-    local finish, abilityId, foodFormattedTime
     local function FoodFragmentCondition()
         local result
 
-        if not (not BN.isUILocked or checkFood) or not sv.isFoodReminderEnabled then result = false
+        if not (not BN.isUILocked or checkFood) or not  BN.sv.isFoodReminderEnabled then result = false
         elseif not BN.isUILocked then -- UI is unlocked, show default
             BearNecessities_FoodReminder_Timer:SetText('7:38')
             result = true
         else
+            local foodBuffRemaining = 0
+
             for i = 1, GetNumBuffs('player') do
-                _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
+                local _, _, finish, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
 
                 if foodList[abilityId] then
                     foodBuffRemaining = finish - GetGameTimeSeconds()
@@ -118,9 +117,9 @@ local function CreateSceneFragments()
                 end
             end
 
-            if foodBuffRemaining <= sv.foodReminderThreshold * 60 then
+            if foodBuffRemaining <=  BN.sv.foodReminderThreshold * 60 then
                 if foodBuffRemaining > 0 then
-                    foodFormattedTime = ZO_FormatTime(foodBuffRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
+                    local foodFormattedTime = ZO_FormatTime(foodBuffRemaining, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_SECONDS)
                     BearNecessities_FoodReminder_Timer:SetText(foodFormattedTime)
                 else BearNecessities_FoodReminder_Timer:SetText('|cFF0000EXPIRED|r') end
 
@@ -131,21 +130,20 @@ local function CreateSceneFragments()
         return result
     end
 
-    local groupMembersOnline, groupMembersAlive
-    local unitTag, isOnline, isDead
     local function GroupFragmentCondition()
         local result
-        groupMembersOnline, groupMembersAlive = 0, 0
 
-        if not (not BN.isUILocked or IsUnitGrouped('player')) or not sv.isGroupUIEnabled then result = false
+        if not (not BN.isUILocked or IsUnitGrouped('player')) or not  BN.sv.isGroupUIEnabled then result = false
         elseif not BN.isUILocked then -- UI is unlocked, show default
             BearNecessities_GroupFrame_Label:SetText('7/12')
             result = true
         else
+            local groupMembersOnline, groupMembersAlive = 0, 0
+
             for i = 1, GetGroupSize() do
-                unitTag = GetGroupUnitTagByIndex(i)
-                isOnline = IsUnitOnline(unitTag)
-                isDead = IsUnitDead(unitTag)
+                local unitTag = GetGroupUnitTagByIndex(i)
+                local isOnline = IsUnitOnline(unitTag)
+                local isDead = IsUnitDead(unitTag)
 
                 if isOnline then
                     groupMembersOnline = groupMembersOnline + 1
@@ -165,8 +163,8 @@ local function CreateSceneFragments()
     local function AttributeFragmentCondition()
         local result
 
-        -- return sv.isAttributeUIEnabled
-        if not sv.isAttributeUIEnabled then result = false
+        -- return  BN.sv.isAttributeUIEnabled
+        if not  BN.sv.isAttributeUIEnabled then result = false
         else result = true end
 
         return result
@@ -175,8 +173,8 @@ local function CreateSceneFragments()
     local function ShieldFragmentCondition()
         local result
 
-        -- return sv.isAttributeUIEnabled and BearNecessities_Shield_Value:GetText() ~= '0%'
-        if not sv.isAttributeUIEnabled or BearNecessities_Shield_Value:GetText() == '0%' then result = false
+        -- return  BN.sv.isAttributeUIEnabled and BearNecessities_Shield_Value:GetText() ~= '0%'
+        if not  BN.sv.isAttributeUIEnabled or BearNecessities_Shield_Value:GetText() == '0%' then result = false
         else result = true end
 
         return result
@@ -185,8 +183,8 @@ local function CreateSceneFragments()
     local function MountStaminaFragmentCondition()
         local result
 
-        -- return sv.isAttributeUIEnabled and IsMounted()
-        if not sv.isAttributeUIEnabled or not IsMounted() then result = false
+        -- return  BN.sv.isAttributeUIEnabled and IsMounted()
+        if not  BN.sv.isAttributeUIEnabled or not IsMounted() then result = false
         else result = true end
 
         return result
@@ -201,14 +199,13 @@ local function CreateSceneFragments()
     mountStaminaFragment = AddSimpleFragment(BearNecessities_MountStamina, MountStaminaFragmentCondition)
 end
 
-local ap, gold, tv, wv
 local function TransferCurrenciesToBank()
-    if not sv.doMoveCurrencies then return end
+    if not  BN.sv.doMoveCurrencies then return end
 
-    ap = GetCurrencyAmount(CURT_ALLIANCE_POINTS, CURRENCY_LOCATION_CHARACTER)
-    gold = GetCurrencyAmount(CURT_MONEY, CURRENCY_LOCATION_CHARACTER)
-    tv = GetCurrencyAmount(CURT_TELVAR_STONES, CURRENCY_LOCATION_CHARACTER)
-    wv = GetCurrencyAmount(CURT_WRIT_VOUCHERS, CURRENCY_LOCATION_CHARACTER)
+    local ap = GetCurrencyAmount(CURT_ALLIANCE_POINTS, CURRENCY_LOCATION_CHARACTER)
+    local gold = GetCurrencyAmount(CURT_MONEY, CURRENCY_LOCATION_CHARACTER)
+    local tv = GetCurrencyAmount(CURT_TELVAR_STONES, CURRENCY_LOCATION_CHARACTER)
+    local wv = GetCurrencyAmount(CURT_WRIT_VOUCHERS, CURRENCY_LOCATION_CHARACTER)
 
     if ap > 0 then
         TransferCurrency(CURT_ALLIANCE_POINTS, ap, CURRENCY_LOCATION_CHARACTER, CURRENCY_LOCATION_BANK)
@@ -231,15 +228,14 @@ local function TransferCurrenciesToBank()
     end
 end
 
-local charges, maxCharges
 local function IsEnchantmentEffectivenessReduced(bagId, slotIndex)
-    charges, maxCharges = GetChargeInfoForItem(bagId, slotIndex)
+    local charges, maxCharges = GetChargeInfoForItem(bagId, slotIndex)
     return maxCharges > 0 and charges == 1
 end
 
 -- Repairs broken gear and recharges drained weapons
 local function CheckEquippedGearPiece(_, bagId, slotIndex)
-    if not sv.doAutoCheckGear or IsUnitDead('player') then return end
+    if not  BN.sv.doAutoCheckGear or IsUnitDead('player') then return end
 
     if DoesItemHaveDurability(bagId, slotIndex) and IsArmorEffectivenessReduced(bagId, slotIndex) then
         for i = 0, GetBagSize(BAG_BACKPACK) - 1 do
@@ -271,15 +267,14 @@ local function UpdateGroupFrame()
     groupFragment:Refresh()
 end
 
-local percentage, shield
 -- Update attribute UI
 local function OnPowerUpdate(_, _, _, powerType, powerValue, _, powerEffectiveMax)
     if powerValue == nil then powerValue, _, powerEffectiveMax = GetUnitPower('player', powerType) end
 
-    percentage = math.floor(powerValue / powerEffectiveMax * 100 + 0.5)
+    local percentage = math.floor(powerValue / powerEffectiveMax * 100 + 0.5)
 
     if powerType == POWERTYPE_HEALTH then
-        shield = GetUnitAttributeVisualizerEffectInfo('player', ATTRIBUTE_VISUAL_POWER_SHIELDING, STAT_MITIGATION, ATTRIBUTE_HEALTH, POWERTYPE_HEALTH)
+        local shield = GetUnitAttributeVisualizerEffectInfo('player', ATTRIBUTE_VISUAL_POWER_SHIELDING, STAT_MITIGATION, ATTRIBUTE_HEALTH, POWERTYPE_HEALTH)
         if not shield then shield = 0 end
         shield = math.floor(shield / powerEffectiveMax * 100 + 0.5)
 
@@ -305,20 +300,21 @@ local function OnMountChanged()
 end
 
 local changedHiddenGroup = false
-local function OnCombatStateChanged(_, inCombat)
-    if inCombat then
-        if sv.doHideChatInCombat and not isTyping then KEYBOARD_CHAT_SYSTEM:Minimize() end
-        if isNecro and isGroupHidden and DoesUnitExist('boss1') then
-            changedHiddenGroup = true
-            isGroupHidden = false
-            SetCrownCrateNPCVisible(false)
-        end
-    else
-        if sv.doHideChatInCombat then KEYBOARD_CHAT_SYSTEM:Maximize() end
-        if changedHiddenGroup then
-            changedHiddenGroup = false
-            isGroupHidden = true
-            SetCrownCrateNPCVisible(true)
+local function OnCombatStateChanged(eventCode, inCombat)
+    -- Player's combat state has changed
+    if isPlayerInCombat ~= inCombat then
+        -- Player has entered combat
+        if inCombat then
+            isPlayerInCombat = true
+            if  BN.sv.doHideChatInCombat and not isTyping then KEYBOARD_CHAT_SYSTEM:Minimize() end
+        -- Player has potentially left combat, react later to ensure combat state change isn't false
+        else
+            zo_callLater(function()
+                if not IsUnitInCombat('player') then
+                    isPlayerInCombat = false
+                    if  BN.sv.doHideChatInCombat then KEYBOARD_CHAT_SYSTEM:Maximize() end
+                end
+            end, 1000)
         end
     end
 end
@@ -352,13 +348,16 @@ local function OnPlayerActivated(eventCode, initial)
     if GetCurrentZoneDungeonDifficulty() ~= 0 then checkFood = true
     else checkFood = false end
 
-    SetCrownCrateNPCVisible(isGroupHidden)
     CheckAllWornGear()
     UpdateGroupFrame()
 
     ZO_PreHook(chatContainer, 'HandleTabClick', function(_, tab) activeWindow = tab.index end)
 
     BN.CallbackManager:FireCallbacks('PlayerActivated', initial)
+end
+
+local function OnPlayerDeactivated(eventCode)
+    BN.CallbackManager:FireCallbacks('PlayerDeactivated')
 end
 
 local function RegisterEvents()
@@ -387,39 +386,52 @@ local function RegisterEvents()
     EM:RegisterForEvent(BN.name, EVENT_PLAYER_COMBAT_STATE, OnCombatStateChanged)
 
     EM:RegisterForEvent(BN.name, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+    EM:RegisterForEvent(BN.name, EVENT_PLAYER_DEACTIVATED, OnPlayerDeactivated)
 end
 
 local function RestorePositions()
     BearNecessities_FoodReminder:ClearAnchors()
-    BearNecessities_FoodReminder:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, sv.foodLeft, sv.foodTop)
+    BearNecessities_FoodReminder:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT,  BN.sv.foodLeft,  BN.sv.foodTop)
 
     BearNecessities_GroupFrame:ClearAnchors()
-    BearNecessities_GroupFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, sv.groupLeft, sv.groupTop)
+    BearNecessities_GroupFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT,  BN.sv.groupLeft,  BN.sv.groupTop)
 
     BearNecessities_Health:ClearAnchors()
-    BearNecessities_Health:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT, sv.healthRight, sv.healthTop)
+    BearNecessities_Health:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT,  BN.sv.healthRight,  BN.sv.healthTop)
 
     BearNecessities_Magicka:ClearAnchors()
-    BearNecessities_Magicka:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT, sv.magickaRight, sv.magickaTop)
+    BearNecessities_Magicka:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT,  BN.sv.magickaRight,  BN.sv.magickaTop)
 
     BearNecessities_Stamina:ClearAnchors()
-    BearNecessities_Stamina:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT, sv.staminaRight, sv.staminaTop)
+    BearNecessities_Stamina:SetAnchor(TOPRIGHT, GuiRoot, TOPLEFT,  BN.sv.staminaRight,  BN.sv.staminaTop)
 end
 
 -- Called before BOSS_BAR:RefreshBossHealthBar, which is only executed if
 -- the intercept function returns a falsey or no value.
 local function InterceptBossHealthBar()
-    return sv.doHideBossCompassHealthBar
+    return  BN.sv.doHideBossCompassHealthBar
+end
+
+local function InterceptShowDialog(name, data, textParams, isGamepad)
+    if BN.sv.doAutofillDialogTextInput then
+        local dialogInfo = ESO_Dialogs[name]
+
+        if ZO_Dialog1 and dialogInfo.editBox and dialogInfo.editBox.matchingString then
+            ZO_Dialog1EditBox:SetText(dialogInfo.editBox.matchingString)
+            ZO_Dialog1EditBox:LoseFocus()
+        end
+    end
+
+    return BN.sv.doAutofillDialogTextInput
 end
 
 local function OnChatFocused()
     isTyping = true
 end
 
-local inCombat
 local function OnChatFocusLost()
     isTyping = false
-    inCombat = IsUnitInCombat('player')
+    local inCombat = IsUnitInCombat('player')
     OnCombatStateChanged(_, inCombat)
 end
 
@@ -427,11 +439,9 @@ local function RefreshFoodReminder()
     foodFragment:Refresh()
 end
 
-local contrastColourR, contrastColourG, contrastColourB, contrastColourA
-local selectedColourR, selectedColourG, selectedColourB, selectedColourA
 local function FocusNewChatTab(oldWindow, newWindow)
-    contrastColourR, contrastColourG, contrastColourB, contrastColourA = GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST)
-    selectedColourR, selectedColourG, selectedColourB, selectedColourA = GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED)
+    local contrastColourR, contrastColourG, contrastColourB, contrastColourA = GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST)
+    local selectedColourR, selectedColourG, selectedColourB, selectedColourA = GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED)
 
     oldWindow:GetNamedChild('Text'):SetColor(contrastColourR, contrastColourG, contrastColourB, contrastColourA)
     oldWindow.state = 2
@@ -545,47 +555,47 @@ function BN.ToggleUI()
 end
 
 function BN.ResetUIPositions()
-    sv.foodLeft = BN.defaults.foodLeft
-    sv.foodTop = BN.defaults.foodTop
+     BN.sv.foodLeft = BN.defaults.foodLeft
+     BN.sv.foodTop = BN.defaults.foodTop
 
-    sv.groupFrameLeft = BN.defaults.groupFrameLeft
-    sv.groupFrameTop = BN.defaults.groupFrameTop
+     BN.sv.groupFrameLeft = BN.defaults.groupFrameLeft
+     BN.sv.groupFrameTop = BN.defaults.groupFrameTop
 
-    sv.healthRight = BN.defaults.healthRight
-    sv.healthTop = BN.defaults.healthTop
+     BN.sv.healthRight = BN.defaults.healthRight
+     BN.sv.healthTop = BN.defaults.healthTop
 
-    sv.magickaRight = BN.defaults.magickaRight
-    sv.magickaTop = BN.defaults.magickaTop
+     BN.sv.magickaRight = BN.defaults.magickaRight
+     BN.sv.magickaTop = BN.defaults.magickaTop
 
-    sv.staminaRight = BN.defaults.staminaRight
-    sv.staminaTop = BN.defaults.staminaTop
+     BN.sv.staminaRight = BN.defaults.staminaRight
+     BN.sv.staminaTop = BN.defaults.staminaTop
 
     RestorePositions()
 end
 
 function BN.FoodOnMoveStop()
-    sv.foodLeft = BearNecessities_FoodReminder:GetLeft()
-    sv.foodTop = BearNecessities_FoodReminder:GetTop()
+     BN.sv.foodLeft = BearNecessities_FoodReminder:GetLeft()
+     BN.sv.foodTop = BearNecessities_FoodReminder:GetTop()
 end
 
 function BN.GroupFrameOnMoveStop()
-    sv.groupLeft = BearNecessities_GroupFrame:GetLeft()
-    sv.groupTop = BearNecessities_GroupFrame:GetTop()
+     BN.sv.groupLeft = BearNecessities_GroupFrame:GetLeft()
+     BN.sv.groupTop = BearNecessities_GroupFrame:GetTop()
 end
 
 function BN.HealthOnMoveStop()
-    sv.healthRight = BearNecessities_Health:GetRight()
-    sv.healthTop = BearNecessities_Health:GetTop()
+     BN.sv.healthRight = BearNecessities_Health:GetRight()
+     BN.sv.healthTop = BearNecessities_Health:GetTop()
 end
 
 function BN.MagickaOnMoveStop()
-    sv.magickaRight = BearNecessities_Magicka:GetRight()
-    sv.magickaTop = BearNecessities_Magicka:GetTop()
+     BN.sv.magickaRight = BearNecessities_Magicka:GetRight()
+     BN.sv.magickaTop = BearNecessities_Magicka:GetTop()
 end
 
 function BN.StaminaOnMoveStop()
-    sv.staminaRight = BearNecessities_Stamina:GetRight()
-    sv.staminaTop = BearNecessities_Stamina:GetTop()
+     BN.sv.staminaRight = BearNecessities_Stamina:GetRight()
+     BN.sv.staminaTop = BearNecessities_Stamina:GetTop()
 end
 
 function BN.SummonMerchant()
@@ -600,11 +610,6 @@ function BN.SummonBanker()
     elseif IsCollectibleUnlocked(267) then UseCollectible(267) end -- Tythis Andromo
 end
 
-function BN.HideGroup()
-    isGroupHidden = not isGroupHidden
-    SetCrownCrateNPCVisible(isGroupHidden)
-end
-
 function BN.SummonSmuggler()
     if IsCollectibleUnlocked(300) then UseCollectible(300) end -- Pirharri
 end
@@ -615,14 +620,14 @@ local function OnAddonLoaded(eventCode, addonName)
 
         BN.sv = ZO_SavedVars:NewAccountWide(BN.svName, BN.svVersion, nil, BN.defaults)
         if not BN.sv.isAccountWide then BN.sv = ZO_SavedVars:NewCharacterIdSettings(BN.svName, BN.svVersion, nil, BN.defaults) end
-        sv = BN.sv
 
         BN.CallbackManager = ZO_CallbackObject:New()
 
-        if sv.doHideTargetHealthBar then UNIT_FRAMES.staticFrames['reticleover']:SetHiddenForReason('BearNecessities', true) end
-        if sv.isExpBarHidden then BN.RemoveFragment(PLAYER_PROGRESS_BAR_FRAGMENT) end
-        if sv.isAttributeUIEnabled then BN.RemoveFragment(PLAYER_ATTRIBUTE_BARS_FRAGMENT) end
-        if sv.isGroupUIEnabled then UNIT_FRAMES:DisableGroupAndRaidFrames() end
+        if  BN.sv.doHideTargetHealthBar then UNIT_FRAMES.staticFrames['reticleover']:SetHiddenForReason('BearNecessities', true) end
+        if  BN.sv.isExpBarHidden then BN.RemoveFragment(PLAYER_PROGRESS_BAR_FRAGMENT) end
+        if  BN.sv.isAttributeUIEnabled then BN.RemoveFragment(PLAYER_ATTRIBUTE_BARS_FRAGMENT) end
+        if  BN.sv.isGroupUIEnabled then UNIT_FRAMES:DisableGroupAndRaidFrames() end
+        if BN.sv.doRemoveChatConfirmDestroyItem then  end
 
         -- Must be changed before chat is initialised
         KEYBOARD_CHAT_SYSTEM.maxContainerWidth, KEYBOARD_CHAT_SYSTEM.maxContainerHeight = GuiRoot:GetDimensions()
@@ -639,6 +644,7 @@ local function OnAddonLoaded(eventCode, addonName)
         ZO_PreHook(BOSS_BAR, 'RefreshBossHealthBar', InterceptBossHealthBar)
         ZO_PostHook('StartChatInput', OnChatFocused)
         ZO_PostHook('ZO_ChatTextEntry_FocusLost', OnChatFocusLost)
+        ZO_PostHook('ZO_Dialogs_ShowDialog', InterceptShowDialog)
 
         EM:RegisterForUpdate(BN.name .. 'FoodReminder', 1000, RefreshFoodReminder)
     end
@@ -650,4 +656,3 @@ SLASH_COMMANDS['/house'] = function() RequestJumpToHouse(GetHousingPrimaryHouse(
 SLASH_COMMANDS['/m'] = BN.SummonMerchant
 SLASH_COMMANDS['/b'] = BN.SummonBanker
 SLASH_COMMANDS['/s'] = BN.SummonSmuggler
-SLASH_COMMANDS['/hg'] = BN.HideGroup
