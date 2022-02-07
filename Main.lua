@@ -72,6 +72,8 @@ local lootLogWindow
 -- Localised functions are faster
 local strformat = string.format
 
+local isGroupHidden = false
+local isNecro = GetUnitClassId('player') == 5
 local checkFood = false -- Only track food buff when in arenas, dungeons or trials
 local isPlayerInCombat = false
 local isTyping = false
@@ -82,9 +84,6 @@ local chatContainer, systemWindow
 
 -- UI fragments
 local foodFragment, groupFragment, healthFragment, shieldFragment, magickaFragment, staminaFragment, mountStaminaFragment
-
--- storage of dialogs for settings
-local destroyDialog, improveDialog, enchantDialog, retraitDialog
 
 local function AddSimpleFragment(control, condition)
     local fragment = ZO_SimpleSceneFragment:New(control)
@@ -307,12 +306,22 @@ local function OnCombatStateChanged(eventCode, inCombat)
         if inCombat then
             isPlayerInCombat = true
             if  BN.sv.doHideChatInCombat and not isTyping then KEYBOARD_CHAT_SYSTEM:Minimize() end
+            if isNecro and isGroupHidden and DoesUnitExist('boss1') then
+                changedHiddenGroup = true
+                isGroupHidden = false
+                SetCrownCrateNPCVisible(false)
+            end
         -- Player has potentially left combat, react later to ensure combat state change isn't false
         else
             zo_callLater(function()
                 if not IsUnitInCombat('player') then
                     isPlayerInCombat = false
                     if  BN.sv.doHideChatInCombat then KEYBOARD_CHAT_SYSTEM:Maximize() end
+                    if changedHiddenGroup then
+                        changedHiddenGroup = false
+                        isGroupHidden = true
+                        SetCrownCrateNPCVisible(true)
+                    end
                 end
             end, 1000)
         end
@@ -348,6 +357,7 @@ local function OnPlayerActivated(eventCode, initial)
     if GetCurrentZoneDungeonDifficulty() ~= 0 then checkFood = true
     else checkFood = false end
 
+    SetCrownCrateNPCVisible(isGroupHidden)
     CheckAllWornGear()
     UpdateGroupFrame()
 
@@ -610,6 +620,11 @@ function BN.SummonBanker()
     elseif IsCollectibleUnlocked(267) then UseCollectible(267) end -- Tythis Andromo
 end
 
+function BN.HideGroup()
+    isGroupHidden = not isGroupHidden
+    SetCrownCrateNPCVisible(isGroupHidden)
+end
+
 function BN.SummonSmuggler()
     if IsCollectibleUnlocked(300) then UseCollectible(300) end -- Pirharri
 end
@@ -656,3 +671,4 @@ SLASH_COMMANDS['/house'] = function() RequestJumpToHouse(GetHousingPrimaryHouse(
 SLASH_COMMANDS['/m'] = BN.SummonMerchant
 SLASH_COMMANDS['/b'] = BN.SummonBanker
 SLASH_COMMANDS['/s'] = BN.SummonSmuggler
+SLASH_COMMANDS['/hg'] = BN.HideGroup

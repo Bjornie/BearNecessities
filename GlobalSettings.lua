@@ -116,13 +116,6 @@ local function GetGameSettings()
                             else
                                 sv.gameSettings[panelIndex][systemIndex][settingIndex] = GetSetting(systemIndex, settingIndex)
                             end
-                            -- sv.gameSettings[panelIndex][systemIndex][settingIndex] = {{setting.system, setting.settingId}}
-
-                            -- if setting.controlType == OPTIONS_COLOR then
-                            --     sv.gameSettings[panelIndex][systemIndex][settingIndex][2] = GetSetting(setting.system, setting.settingId):sub(3, 8)
-                            -- else
-                            --     sv.gameSettings[panelIndex][systemIndex][settingIndex][2] = GetSetting(setting.system, setting.settingId)
-                            -- end
                         end
                     end
                 end

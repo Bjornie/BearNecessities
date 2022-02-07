@@ -19,7 +19,7 @@ function BN.BuildMenu()
             controls = {
                 {
                     type = 'description',
-                    text = 'This addon has the following chat commands:\n- /house: port inside your primary residence\n- /m: summon merchant assistant\n- /b: summon banker assistant\n- /s: summon smuggler assistant'
+                    text = 'This addon has the following chat commands:\n- /house: port inside your primary residence\n- /m: summon merchant assistant\n- /b: summon banker assistant\n- /s: summon smuggler assistant\n- /hg: hide group members (works for necros as well)'
                 },
                 {
                     type = 'description',
